@@ -1,6 +1,7 @@
 import retro
 
 def random_actions(env):
+    #this starts an environment where mario does random actions on 1-2 and gets reinforced with the final score
     obs = env.reset()
     while True:
         obs, rew, done, info = env.step(env.action_space.sample())
@@ -12,4 +13,4 @@ def random_actions(env):
 
 if __name__ == "__main__":
     env = retro.make(game='SuperMarioWorld-Snes')#, state="roms/super_mario_world/save_states/yoshis_island1_start.state")
-    random_actions(env)
+    #random_actions(env)
