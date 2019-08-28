@@ -10,7 +10,7 @@ def random_actions(env, print_steps=False, n_steps=1000):
         steps += 1
         action_print = steps % n_steps == 0
         if print_steps and action_print:
-            print(obs)
+            print(obs.shape)
 
         env.render()
         if done:
