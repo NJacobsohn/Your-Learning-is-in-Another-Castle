@@ -28,10 +28,6 @@
       "address": 8257561,
       "type": "|i1"
     },
-    "pre_tape_drumroll": {
-      "address": 8262614,
-      "type": "|d1"
-    },
     "score": {
       "address": 8261428,
       "type": "<u4"

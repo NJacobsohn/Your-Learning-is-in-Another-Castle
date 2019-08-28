@@ -6,17 +6,55 @@
     0
   ],
   "done": {
+    "condition": "any",
     "variables": {
       "lives": {
         "op": "equal",
-        "reference": -1
+        "reference": 3
+      },
+      "level_complete":{
+        "op": "less-than",
+        "reference": 20
       }
     }
   },
   "reward": {
     "variables": {
+      "powerup_status": {
+        "op": "greater-than",
+        "measurement": "delta",
+        "reference": 0,
+        "reward": 0.5
+      },
+      "coins": {
+        "op": "greater-than",
+        "measurement": "delta",
+        "reference": 0,
+        "reward": 0.1
+      },
+      "midway_point": {
+        "op": "equal",
+        "measurement": "delta",
+        "reference": 1,
+        "reward": 5.0
+      },
+      "positionx": {
+        "op": "greater-than",
+        "measurement": "delta",
+        "reference": 0,
+        "reward": 0.1
+      },
+      "screen_positiony": {
+        "op": "greater-than",
+        "measurement": "delta",
+        "reference": 0,
+        "reward": 0.0
+      },
       "score": {
-        "reward": 10.0
+        "op": "greater-than",
+        "measurement": "delta",
+        "reference": 0,
+        "reward": 0.01
       }
     }
   }
