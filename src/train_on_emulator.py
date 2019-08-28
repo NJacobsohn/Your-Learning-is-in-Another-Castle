@@ -6,16 +6,15 @@ def random_actions(env, print_steps=False, n_steps=1000):
     #this starts an environment where mario does random actions on 1-2 and gets reinforced with the final score
     obs = env.reset()
     steps = 0
-    test_movements = [1]
     while True:
-        
-        obs, rew, done, info = env.step(test_movements)
+        obs, rew, done, info = env.step(env.action_space.sample())
+        #return obs #line for viewing and manipulating a single observation
         steps += 1
         action_print = steps % n_steps == 0
         if print_steps and action_print:
-            print(obs)
+            print(obs.shape)
             print(info)
-            #print(rew)
+            print(rew)
             #rint(done)
 
         env.render()
@@ -53,4 +52,4 @@ if __name__ == "__main__":
 
     
 
-    random_actions(env, print_steps=True, n_steps=1000)
+    random_actions(env, print_steps=True, n_steps=100)

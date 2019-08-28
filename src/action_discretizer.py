@@ -49,10 +49,3 @@ class MarioDiscretizer(Discretizer):
             ['X', 'LEFT', 'A'], #sprint spin jump left
             ['B', 'UP'] #jump into a ceiling pipe (this should probably be left out most of the time)
             ])
-
-
-
-env = retro.make(game='SuperMarioWorld-Snes')
-env = MarioDiscretizer(env)
-print('MarioDiscretizer action_space', env.action_space)
-env.close()
