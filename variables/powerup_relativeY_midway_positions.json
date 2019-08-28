@@ -1,0 +1,44 @@
+{
+  "info": {
+    "coins": {
+      "address": 8261055,
+      "type": "|u1"
+    },
+    "level_complete": {
+      "address": 8262614,
+      "type": "|d1"
+    },
+    "lives": {
+      "address": 8261054,
+      "type": "|i1"
+    },
+    "midway_point": {
+      "address": 8262606,
+      "type": "|u1"
+    },
+    "positionx": {
+      "address": 8257745,
+      "type": "<u2"
+    },
+    "positiony": {
+      "address": 8257747,
+      "type": "<i4"
+    },
+    "powerup_status": {
+      "address": 8257561,
+      "type": "|i1"
+    },
+    "pre_tape_drumroll": {
+      "address": 8262614,
+      "type": "|d1"
+    },
+    "score": {
+      "address": 8261428,
+      "type": "<u4"
+    },
+    "screen_positiony": {
+      "address": 8257664,
+      "type": "<u2"
+    }
+  }
+}

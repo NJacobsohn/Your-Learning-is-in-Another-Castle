@@ -1,0 +1,24 @@
+{
+  "info": {
+    "coins": {
+      "address": 8261055,
+      "type": "|u1"
+    },
+    "lives": {
+      "address": 8261054,
+      "type": "|i1"
+    },
+    "positionx": {
+      "address": 8257745,
+      "type": "<u2"
+    },
+    "positiony": {
+      "address": 8257747,
+      "type": "<i4"
+    },
+    "score": {
+      "address": 8261428,
+      "type": "<u4"
+    }
+  }
+}
