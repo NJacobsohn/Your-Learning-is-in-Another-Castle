@@ -56,6 +56,9 @@
         "reference": 0,
         "reward": 0.01
       }
+    },
+    "time": {
+      "penalty": 0.1
     }
   }
 }
