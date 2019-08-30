@@ -1,5 +1,6 @@
 from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Activation
+from baselines.common.retro_wrappers import *
 import os
 import pickle
 import numpy as np
