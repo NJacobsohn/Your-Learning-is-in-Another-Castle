@@ -33,7 +33,7 @@ def your_network_define(**conv_kwargs):
 ppo2.learn(network='custom_cnn',...)
 """
 
-class CNN_Player(object):
+class CNNPlayer(object):
     """
     This is a player that learns how to play mario based on 
     the literal image of what the screen shows + reinforcement rewards

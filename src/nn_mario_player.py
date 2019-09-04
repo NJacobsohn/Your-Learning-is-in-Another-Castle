@@ -5,7 +5,7 @@ import os
 import pickle
 import numpy as np
 
-class NN_Player(object):
+class NNPlayer(object):
     """
     This is a player that learns how to play mario based on 
     the values in the game (position, coins, score, lives, etc.) + reinforcement rewards

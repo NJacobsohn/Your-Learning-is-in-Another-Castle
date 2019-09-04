@@ -4,11 +4,15 @@ from algorithm_object_base import AlgorithmBase
 from action_discretizer import MarioDiscretizer
 
 class RandomPlayer(AlgorithmBase):
+    """
+    Creates a RandomPlayer with chosen arguments.
+    This is one of few algorithm classes that is callable from the command line.
+    """
 
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
-        
+
         self.env = self.make_env()
 
     def run(self, n_episodes=5):
@@ -25,7 +29,5 @@ class RandomPlayer(AlgorithmBase):
             if done:
                 print("Total Rewards for episode {0}: {1}".format(current_episode, rew))
                 current_episode += 1
-                obs = self.env.reset()
-
-                
+                obs = self.env.reset()      
         self.env.close()

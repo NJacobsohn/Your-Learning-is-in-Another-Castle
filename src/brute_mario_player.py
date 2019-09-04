@@ -8,7 +8,7 @@ from baselines.common.retro_wrappers import StochasticFrameSkip
 class BrutePlayer(AlgorithmBase):
     """
     Creates a BrutePlayer with chosen arguments.
-    This is one of few algorithm classes that is callable from the command line.
+    This is one of the algorithm classes that is callable from the command line.
     """
     def __init__(self, *args, **kwargs):
 
