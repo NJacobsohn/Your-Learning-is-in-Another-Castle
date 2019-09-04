@@ -47,5 +47,5 @@ class MarioDiscretizer(Discretizer):
             ['X', 'LEFT', 'B'], #sprint jump left
             ['X', 'RIGHT', 'A'], #sprint spin jump right
             ['X', 'LEFT', 'A'], #sprint spin jump left
-            ['B', 'UP'] #jump into a ceiling pipe (this should probably be left out most of the time)
+            ['B', 'UP'] #jump into a ceiling pipe (this will likely be removed unless there are levels that require it)
             ])

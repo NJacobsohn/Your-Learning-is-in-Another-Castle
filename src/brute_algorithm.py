@@ -1,11 +1,14 @@
 import os
 import retro
-import argparse
 from action_discretizer import MarioDiscretizer
+from retro.examples.brute import Brute, TimeLimit
 from baselines.common.retro_wrappers import StochasticFrameSkip
-from retro.examples.brute import Brute, update_tree, select_actions, rollout, Node, TimeLimit, Frameskip
 
 class BrutePlayer(object):
+    """
+    Creates a BrutePlayer with chosen arguments.
+    This is one of few algorithm classes that is callable from the command line.
+    """
 
     def __init__(self, project_name, game, scenario, variables, observation_type, record):
         self.project_name = project_name
@@ -19,13 +22,18 @@ class BrutePlayer(object):
         self.max_episode_steps = 5000
 
     def _fix_record_path(self, record_path):
+        """
+        Moves the project directory in the chosen recording path
+        """
         full_path = record_path + "/" + self.project_name + "/"
         if not os.path.exists(full_path):
             os.makedirs(full_path)
-        
         return full_path
 
     def make_env(self):
+        """
+        Creates Brute specific environment
+        """
         self.env = retro.make(
             game=self.game,
             info=self.variables, #these are the variables I tracked down as well as their location in memory
@@ -33,30 +41,40 @@ class BrutePlayer(object):
             state=retro.State.DEFAULT, #this isn't necessary but I'm keeping it for potential future customization
             scenario=self.scenario,
             record=self.record_path)
+
         self.env = MarioDiscretizer(self.env) #wraps env to only allow hand chosen inputs and input combos
-        self.env = StochasticFrameSkip(self.env, 4, 0.25)
-        self.env = TimeLimit(self.env, max_episode_steps=max_episode_steps)
 
-    def brute_retro(self, env, max_episode_steps=5000, timestep_limit=25000):
-        
+        self.env = StochasticFrameSkip(self.env, 4, 0.25) #wraps env to randomly skip frames, cutting down on training time
 
-        brute = Brute(env, max_episode_steps=max_episode_steps)
+        self.env = TimeLimit(self.env, max_episode_steps=self.max_episode_steps) #might remove this wrapper later
+        self.brute_alg = Brute(self.env, max_episode_steps=self.max_episode_steps)
+
+    def run(self, n_episodes=5):
+        """
+        Runs the Brute algorithm
+        """
+        if (not self.env) or (not self.brute_alg):
+            self.make_env
+        timestep_limit = n_episodes * self.max_episode_steps
         timesteps = 0
-        best_rew = float('-inf')
+        self.best_rew = float('-inf')
         while True:
-            acts, rew = brute.run()
+            acts, rew = self.brute_alg.run()
             timesteps += len(acts)
 
             if rew > best_rew:
-                print("new best reward {} => {}".format(best_rew, rew))
+                print("New best reward {0} => {1}".format(best_rew, rew))
                 best_rew = rew
-                env.unwrapped.record_movie("/learning_movies/{0}_reward.bk2".format(best_rew))
-                env.reset()
+                self.env.unwrapped.record_movie(self.record_path + "{0}_reward.bk2".format(best_rew))
+                self.env.reset()
                 for act in acts:
-                    env.step(act)
-                    env.render()
-                env.unwrapped.stop_record()
+                    self.env.step(act)
+                    self.env.render() #remove this line when running on aws
+                self.env.unwrapped.stop_record()
 
             if timesteps > timestep_limit:
-                print("timestep limit exceeded")
-                break  
+                print("Timestep limit exceeded")
+                break
+        self.env.close()
+
+        
