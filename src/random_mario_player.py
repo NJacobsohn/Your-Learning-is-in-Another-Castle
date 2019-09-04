@@ -12,7 +12,8 @@ class RandomPlayer(object):
         self.record_path = self._fix_record_path(record)
 
         self.isVectorized = False #not a ppo algorithm, this may need to be changed for parallelization of this algorithm
-        self.max_episode_steps = 5000
+        
+        self.env = self.make_env()
 
     def _fix_record_path(self, record_path):
         """
@@ -24,13 +25,15 @@ class RandomPlayer(object):
         return full_path
 
     def make_env(self):
-        self.env = retro.make(
+        env = retro.make(
             game=self.game,
             info=self.variables, #these are the variables I tracked down as well as their location in memory
             state=retro.State.DEFAULT, #this isn't necessary but I'm keeping it for potential future customization
             scenario=self.scenario,
             record=self.record_path)
-        self.env = MarioDiscretizer(self.env)
+        env = MarioDiscretizer(env)
+
+        return env
 
     def run(self, n_episodes=5):
         obs = self.env.reset()
@@ -39,13 +42,14 @@ class RandomPlayer(object):
             if current_episode > n_episodes:
                 print("Episode Limit Reached!")
                 break
-
-            obs, rew, done, info = self.env.step(self.env.action_space.sample())
+            
+            obs, rew, done, _info = self.env.step(self.env.action_space.sample())
             self.env.render()
 
             if done:
                 print("Total Rewards for episode {0}: {1}".format(current_episode, rew))
                 current_episode += 1
                 obs = self.env.reset()
+
                 
-        env.close()
+        self.env.close()

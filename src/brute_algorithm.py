@@ -15,11 +15,13 @@ class BrutePlayer(object):
         self.game = game
         self.scenario = scenario
         self.variables = variables
-        self.observation_type = observation_type 
+        self.observation_type = retro.Observations(observation_type) 
         self.record_path = self._fix_record_path(record)
 
         self.isVectorized = False #not a ppo algorithm, this may need to be changed for parallelization of this algorithm
         self.max_episode_steps = 5000
+
+        self.env, self.brute_alg = self.make_env()
 
     def _fix_record_path(self, record_path):
         """
@@ -34,7 +36,7 @@ class BrutePlayer(object):
         """
         Creates Brute specific environment
         """
-        self.env = retro.make(
+        env = retro.make(
             game=self.game,
             info=self.variables, #these are the variables I tracked down as well as their location in memory
             obs_type=self.observation_type, #0 for CNN image observation, 1 for NN numerical observation
@@ -42,19 +44,19 @@ class BrutePlayer(object):
             scenario=self.scenario,
             record=self.record_path)
 
-        self.env = MarioDiscretizer(self.env) #wraps env to only allow hand chosen inputs and input combos
+        env = MarioDiscretizer(env) #wraps env to only allow hand chosen inputs and input combos
 
-        self.env = StochasticFrameSkip(self.env, 4, 0.25) #wraps env to randomly skip frames, cutting down on training time
+        env = StochasticFrameSkip(env, 4, 0.25) #wraps env to randomly skip frames, cutting down on training time
 
-        self.env = TimeLimit(self.env, max_episode_steps=self.max_episode_steps) #might remove this wrapper later
-        self.brute_alg = Brute(self.env, max_episode_steps=self.max_episode_steps)
+        env = TimeLimit(env, max_episode_steps=self.max_episode_steps) #might remove this wrapper later
+        brute_alg = Brute(env, max_episode_steps=self.max_episode_steps)
+
+        return env, brute_alg
 
     def run(self, n_episodes=5):
         """
         Runs the Brute algorithm
         """
-        if (not self.env) or (not self.brute_alg):
-            self.make_env
         timestep_limit = n_episodes * self.max_episode_steps
         timesteps = 0
         self.best_rew = float('-inf')
@@ -62,10 +64,10 @@ class BrutePlayer(object):
             acts, rew = self.brute_alg.run()
             timesteps += len(acts)
 
-            if rew > best_rew:
-                print("New best reward {0} => {1}".format(best_rew, rew))
-                best_rew = rew
-                self.env.unwrapped.record_movie(self.record_path + "{0}_reward.bk2".format(best_rew))
+            if rew > self.best_rew:
+                print("New best reward {0} => {1}".format(self.best_rew, rew))
+                self.best_rew = rew
+                self.env.unwrapped.record_movie(self.record_path + "{0}_reward.bk2".format(self.best_rew))
                 self.env.reset()
                 for act in acts:
                     self.env.step(act)
