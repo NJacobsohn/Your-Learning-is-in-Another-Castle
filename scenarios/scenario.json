@@ -9,8 +9,8 @@
     "condition": "any",
     "variables": {
       "lives": {
-        "op": "equal",
-        "reference": 3
+        "op": "less-than",
+        "reference": 4
       },
       "level_complete":{
         "op": "less-than",
@@ -24,37 +24,39 @@
         "op": "greater-than",
         "measurement": "delta",
         "reference": 0,
-        "reward": 0.5
+        "reward": 25.0
       },
       "coins": {
-        "op": "greater-than",
+        "op": "positive",
         "measurement": "delta",
-        "reference": 0,
-        "reward": 0.1
+        "reward": 0.01
       },
       "midway_point": {
         "op": "equal",
         "measurement": "delta",
         "reference": 1,
-        "reward": 5.0
+        "reward": 1000.0
       },
       "positionx": {
-        "op": "greater-than",
+        "op": "sign",
         "measurement": "delta",
-        "reference": 0,
-        "reward": 0.1
+        "reward": 0.1,
+        "penalty": 0.1
       },
       "screen_positiony": {
-        "op": "greater-than",
+        "op": "sign",
         "measurement": "delta",
-        "reference": 0,
         "reward": 0.0
       },
       "score": {
-        "op": "greater-than",
+        "op": "positive",
         "measurement": "delta",
-        "reference": 0,
-        "reward": 0.01
+        "reward": 0.005
+      },
+      "level_complete":{
+        "op": "equal",
+        "reference": 55,
+        "reward": 5000.0
       }
     },
     "time": {
