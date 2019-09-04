@@ -4,6 +4,10 @@
       "address": 8261055,
       "type": "|u1"
     },
+    "exit_type": {
+      "address": 8261077,
+      "type": "|i1"
+    },
     "level_complete": {
       "address": 8262614,
       "type": "|d1"
