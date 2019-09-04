@@ -17,20 +17,19 @@ def create_parser():
                 Current options are:
                     Brute
                     Random
+                    PPO
 
                 Planned options:
-                    PPO1
-                    PPO2
                 """)
     parser.add_argument("-m", "--model", default=None, 
         help="""Pick type of model to run with chosen algorithm.
                 This argument is only necessary when PPO1/2 is chosen for algorithm
                 Current options are:
                     None
+                    CNN *non-functioning model
+                    NN *non-functioning model
 
                 Planned options:
-                    CNN
-                    NN
                     LSTM?
                     XGBoost?
                 """)
