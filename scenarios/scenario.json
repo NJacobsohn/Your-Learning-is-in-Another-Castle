@@ -46,7 +46,7 @@
       "screen_positiony": {
         "op": "sign",
         "measurement": "delta",
-        "reward": 0.0
+        "penalty": 0.1
       },
       "score": {
         "op": "positive",

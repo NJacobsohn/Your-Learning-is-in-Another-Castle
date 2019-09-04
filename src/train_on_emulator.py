@@ -9,4 +9,4 @@ if __name__ == "__main__":
 
     alg = choose_algorithm(args)
     
-    alg.run()
+    #alg.run()

@@ -13,6 +13,10 @@ easier to use and polymorphic ideally.
 import numpy as np
 
 import gym
+import retro
+
+from action_discretizer import MarioDiscretizer
+from baselines.common.retro_wrappers import StochasticFrameSkip, Rgb2gray, Downsample, RewardScaler
 
 from keras.models import Model
 from keras.layers import Input, Dense
@@ -22,10 +26,25 @@ from keras.optimizers import Adam
 import numba as nb
 from tensorboardX import SummaryWriter
 
-ENV = 'LunarLander-v2'
+def make_env():
+    env = retro.make(
+            game="SuperMarioWorld-Snes",
+            info="variables/data.json", #these are the variables I tracked down as well as their location in memory
+            obs_type=retro.Observations(1), #0 for CNN image observation, 1 for NN numerical observation
+            state=retro.State.DEFAULT, #this isn't necessary but I'm keeping it for potential future customization
+            scenario="scenarios/scenario.json",
+            record="learning_movies/PPO_testing/")
+
+    env = MarioDiscretizer(env) #wraps env to only allow hand chosen inputs and input combos
+
+    env = StochasticFrameSkip(env, 4, 0.25) #wraps env to randomly skip frames, cutting down on training time
+
+    return env
+
+ENV = make_env()
 CONTINUOUS = False
 
-EPISODES = 100000
+EPISODES = 25
 
 LOSS_CLIPPING = 0.2 # Only implemented clipping for the surrogate loss, paper said it was best
 EPOCHS = 10
@@ -33,12 +52,12 @@ NOISE = 1.0 # Exploration noise
 
 GAMMA = 0.99
 
-BUFFER_SIZE = 256
-BATCH_SIZE = 64
-NUM_ACTIONS = 4
-NUM_STATE = 8
-HIDDEN_SIZE = 128
-NUM_LAYERS = 2
+BUFFER_SIZE = 2048
+BATCH_SIZE = 512
+NUM_ACTIONS = 15
+NUM_STATE = 141312
+HIDDEN_SIZE = 8
+NUM_LAYERS = 1
 ENTROPY_LOSS = 1e-3
 LR = 1e-4 # Lower lr stabilises training greatly
 
@@ -75,6 +94,7 @@ def proximal_policy_optimization_loss_continuous(advantage, old_prediction):
     return loss
 
 
+
 class Agent:
     def __init__(self):
         self.critic = self.build_critic()
@@ -83,7 +103,7 @@ class Agent:
         else:
             self.actor = self.build_actor_continuous()
 
-        self.env = gym.make(ENV)
+        self.env = ENV
         print(self.env.action_space, 'action_space', self.env.observation_space, 'observation_space')
         self.episode = 0
         self.observation = self.env.reset()
@@ -95,12 +115,7 @@ class Agent:
         self.gradient_steps = 0
 
     def get_name(self):
-        name = 'AllRuns/'
-        if CONTINUOUS is True:
-            name += 'continous/'
-        else:
-            name += 'discrete/'
-        name += ENV
+        name = 'learning_movies/PPO_testing/'
         return name
 
 
@@ -160,6 +175,7 @@ class Agent:
 
     def reset_env(self):
         self.episode += 1
+        print("Starting Episode {}\n".format(self.episode))
         if self.episode % 100 == 0:
             self.val = True
         else:
@@ -236,8 +252,8 @@ class Agent:
 
             advantage = reward - pred_values
             # advantage = (advantage - advantage.mean()) / advantage.std()
-            actor_loss = self.actor.fit([obs, advantage, old_prediction], [action], batch_size=BATCH_SIZE, shuffle=True, epochs=EPOCHS, verbose=False)
-            critic_loss = self.critic.fit([obs], [reward], batch_size=BATCH_SIZE, shuffle=True, epochs=EPOCHS, verbose=False)
+            actor_loss = self.actor.fit([obs, advantage, old_prediction], [action], batch_size=BATCH_SIZE, shuffle=True, epochs=EPOCHS, verbose=1)
+            critic_loss = self.critic.fit([obs], [reward], batch_size=BATCH_SIZE, shuffle=True, epochs=EPOCHS, verbose=1)
             self.writer.add_scalar('Actor loss', actor_loss.history['loss'][-1], self.gradient_steps)
             self.writer.add_scalar('Critic loss', critic_loss.history['loss'][-1], self.gradient_steps)
 
