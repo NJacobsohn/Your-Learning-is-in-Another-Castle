@@ -74,7 +74,7 @@ def wrap_environment(env, observation_type):
     
     return env
 
-def brute_retro(env, max_episode_steps=8000, timestep_limit=1e8):
+def brute_retro(env, max_episode_steps=1e7, timestep_limit=5e7):
     #env = retro.make(game, state, use_restricted_actions=retro.Actions.DISCRETE, scenario=scenario)
     env = Frameskip(env)
     env = TimeLimit(env, max_episode_steps=max_episode_steps)
