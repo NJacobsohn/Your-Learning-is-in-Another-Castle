@@ -27,6 +27,12 @@ def create_parser():
                     PPO
 
                 Planned options:
+                    deepq
+                    a2c/a3c
+                    acer
+                    acktr
+                    trpo
+                    ddpg
                 """)
     parser.add_argument("-m", "--model", default=None, 
         help="""Pick type of model to run with chosen algorithm.
