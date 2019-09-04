@@ -1,13 +1,14 @@
-from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import MaxPooling2D, SeparableConv2D
-from keras.layers.convolutional import Conv2D
 import os
 import pickle
 import numpy as np
+from keras.models import Sequential, Model
+from baselines.common.models import register
+from keras.layers.convolutional import Conv2D
+from keras.layers import MaxPooling2D, SeparableConv2D
+from keras.layers import Dense, Dropout, Activation, Flatten
+
 
 """
-from baselines.common.models import register
 from baselines.a2c import utils
 from baselines.a2c.utils import conv, fc, conv_to_fc, batch_to_seq, seq_to_batch
 
@@ -32,6 +33,11 @@ def your_network_define(**conv_kwargs):
 #pass the network to arguments
 ppo2.learn(network='custom_cnn',...)
 """
+
+
+#env = DummyVecEnv([test_vec_env_builder]) #vectorizes environment for parallel computing/envs. MUST BE DONE FOR PPO
+#ppo2.learn(network="cnn", env=env, total_timesteps=5000)
+
 
 class CNNPlayer(object):
     """
@@ -68,5 +74,9 @@ conv_kwargs = {
     "filter_size" : (3, 3),
 }
 """
-
+@register("cnn_player")
+def create_cnn_player(**conv_kwargs):
+    def network_fn(X, **conv_kwargs):
+        return CNNPlayer(X, **conv_kwargs).model
+    return network_fn
 

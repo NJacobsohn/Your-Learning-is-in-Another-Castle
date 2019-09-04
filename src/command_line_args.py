@@ -11,7 +11,7 @@ def create_parser():
     parser.add_argument("-s", '--scenario', default="scenarios/scenario.json", help="Try out a custom scenario", type=str)
     parser.add_argument("-o", "--observations", default=0, help="Either 0 or 1, 0 for screen observation, 1 for numerical observation", type=int)
     parser.add_argument("-r", "--record", default="learning_movies/", help="Choose a directory to record the training session to", type=str)
-    parser.add_argument("-v", "--variables", default="variables/powerup_relativeY_midway_positions.json", help="Path to reward variable json", type=str)
+    parser.add_argument("-v", "--variables", default="variables/data.json", help="Path to reward variable json", type=str)
     parser.add_argument("-a", "--algorithm", default="brute", 
         help="""Pick name of algorithm to run. 
                 Current options are:
