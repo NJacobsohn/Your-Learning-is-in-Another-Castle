@@ -33,6 +33,9 @@ class Discretizer(gym.ActionWrapper):
 class MarioDiscretizer(Discretizer):
     """
     Use Super Mario World-specific discrete actions
+
+    This action space may need to be inflated in order to keep the AI from jumping a over and over again
+        I.E. Add a bunch of left/right actions that just move left/right
     """
     def __init__(self, env):
         super().__init__(env=env, combos=[

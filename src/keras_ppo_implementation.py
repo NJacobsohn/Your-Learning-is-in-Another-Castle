@@ -5,6 +5,21 @@ https://github.com/LuEE-C/PPO-Keras/blob/master/Main.py
 I will be taking MANY liberties to rework this code for my use case and hopefully make it
 easier to use and polymorphic ideally.
 
+
+
+THINGS THIS CODE NEEDS TO DO:
+
+    Option to play each episode after it completes
+
+    Plot loss/rewards/actions/etc. each episode
+
+    Convert code to work with images
+
+    Multithreading support?
+
+    Adjust NN structure?
+
+    *** FOR THE LOVE OF GOD MAKE THIS INTO AN OBJECT THAT'S EASILY CALLABLE ***
 """
 
 
@@ -48,15 +63,15 @@ EPISODES = 25
 
 LOSS_CLIPPING = 0.2 # Only implemented clipping for the surrogate loss, paper said it was best
 EPOCHS = 10
-NOISE = 1.0 # Exploration noise
+NOISE = 0.5 # Exploration noise
 
 GAMMA = 0.99
 
-BUFFER_SIZE = 2048
-BATCH_SIZE = 512
+BUFFER_SIZE = 1024
+BATCH_SIZE = 64
 NUM_ACTIONS = 15
 NUM_STATE = 141312
-HIDDEN_SIZE = 8
+HIDDEN_SIZE = 64
 NUM_LAYERS = 1
 ENTROPY_LOSS = 1e-3
 LR = 1e-4 # Lower lr stabilises training greatly
