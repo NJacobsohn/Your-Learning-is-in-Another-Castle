@@ -50,7 +50,7 @@ class NNPlayer(AlgorithmBase):
         self.ACTIVATION = "tanh"    # Activation function to use in the actor/critic networks
 
         self.GAMMA = 0.99           # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
-        self.BUFFER_SIZE = 1024     # Number of actions to use in an analysis
+        self.BUFFER_SIZE = 4096     # Number of actions to use in an analysis (I think)
         """
                                     The following is my train of thought as I'm working through understanding PPO and whatnot
                                     For buffer size, I think a larger number is better for training. I'm interpreting this as the number
@@ -64,7 +64,7 @@ class NNPlayer(AlgorithmBase):
         self.NUM_ACTIONS = 15       # Total number of actions in the action space
         self.NUM_STATE = 141312     # Total number of inputs from the environment (i.e. the observation space) This value is numerical observations
         self.HIDDEN_SIZE = 24       # Number of neurons in actor/critic network layers (6144 is a factor of 141312)
-        self.NUM_LAYERS = 1         # Number of layers in the agent and critic networks
+        self.NUM_LAYERS = 2         # Number of layers in the agent and critic networks
         self.ENTROPY_LOSS = 1e-3    # Variable in loss function, helps loss scale properly (I think)
         self.LEARNING_RATE = 1e-4   # Lower lr stabilises training greatly
 
@@ -95,8 +95,8 @@ class NNPlayer(AlgorithmBase):
         old_prediction = Input(shape=(self.NUM_ACTIONS,)) # Previous action predictions (probabilities)
 
         x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input) # Add dense layer with input of correct size
-        for _ in range(self.NUM_LAYERS - 1): # Iterate to add network layers
-            x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
+        for i in range(self.NUM_LAYERS - 1): # Iterate to add network layers
+            x = Dense(self.HIDDEN_SIZE * (i+1) , activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
 
         out_actions = Dense(self.NUM_ACTIONS, activation='softmax', name='output')(x)
         # Output later to pick an action from the action space
@@ -174,28 +174,28 @@ class NNPlayer(AlgorithmBase):
                 #     done              = boolean if any done conditions are met
             self.reward.append(reward) # Track reward for action
 
-            tmp_batch[0].append(self.observation) # This is the observation, numerical/image from the game
-            tmp_batch[1].append(action_matrix) # Track arrays of chosen actions
-            tmp_batch[2].append(predicted_action) # Track action probabilities
-            self.observation = observation # Set current observation to be newest observation
+            tmp_batch[0].append(self.observation)   # This is the observation, numerical/image from the game
+            tmp_batch[1].append(action_matrix)      # Track arrays of chosen actions
+            tmp_batch[2].append(predicted_action)   # Track action probabilities
+            self.observation = observation          # Set current observation to be newest observation
 
-            if done: # Level was either completed or Mario died
-                self.transform_reward() # Scale rewards
-                if not self.val: # Do this for all episodes EXCEPT episodes divisible by 100
-                    for i in range(len(tmp_batch[0])): # For each observation
+            if done:    # Level was either completed or Mario died
+                self.transform_reward()     # Scale rewards
+                if not self.val:                        # Do this for all episodes EXCEPT episodes divisible by 100
+                    for i in range(len(tmp_batch[0])):  # For each observation
                         obs, action, pred = tmp_batch[0][i], tmp_batch[1][i], tmp_batch[2][i]
-                            # Grabs observations, action matrices, and action probability predictions
+                                                        # Grabs observations, action matrices, and action probability predictions
                         r = self.reward[i]
-                            # Grabs rewards for aforementioned actions
+                                                        # Grabs rewards for aforementioned actions
                         batch[0].append(obs)
                         batch[1].append(action)
                         batch[2].append(pred)
                         batch[3].append(r)
-                tmp_batch = [[], [], []] # Clears tmp_batch for next episode
-                self.reset_env() # Gets env setup for another go
+                tmp_batch = [[], [], []]    # Clears tmp_batch for next episode
+                self.reset_env()            # Gets env setup for another go
 
         obs, action, pred, reward = np.array(batch[0]), np.array(batch[1]), np.array(batch[2]), np.reshape(np.array(batch[3]), (len(batch[3]), 1))
-        # Formats data into arrays for better computation, these things are BIG
+                        # Formats data into arrays for better computation, these things are BIG
         pred = np.reshape(pred, (pred.shape[0], pred.shape[2]))
         return obs, action, pred, reward
             # obs       = array of observations with shape (len(observation_space), BUFFER_SIZE)
@@ -211,7 +211,6 @@ class NNPlayer(AlgorithmBase):
             pred_values = self.critic.predict(obs)
 
             advantage = reward - pred_values
-            # advantage = (advantage - advantage.mean()) / advantage.std() # What was this line for????
             actor_loss = self.actor.fit([obs, advantage, old_prediction], [action], batch_size=self.BATCH_SIZE, shuffle=True, epochs=self.EPOCHS, verbose=1)
             critic_loss = self.critic.fit([obs], [reward], batch_size=self.BATCH_SIZE, shuffle=True, epochs=self.EPOCHS, verbose=1)
             self.writer.add_scalar('Actor Loss', actor_loss.history['loss'][-1], self.gradient_steps)
