@@ -59,24 +59,31 @@ def make_env():
 ENV = make_env()
 CONTINUOUS = False
 
-EPISODES = 25
+EPISODES = 25 # Number of episodes to train over
 
 LOSS_CLIPPING = 0.2 # Only implemented clipping for the surrogate loss, paper said it was best
-EPOCHS = 10
+EPOCHS = 10 # Number of Epochs to optimize on between episodes
 NOISE = 0.5 # Exploration noise
 
-GAMMA = 0.99
+GAMMA = 0.99 # Reward scaling
 
-BUFFER_SIZE = 1024
+BUFFER_SIZE = 1024 # Number of actions to use in an analysis
+"""
+    For buffer size, I think a larger number is better for training. I'm interpreting this as the number
+    of actions the actor network will generate for the critic network to attempt to evaluate the reward of.
+    Thus, the more actions it can accurately predict on, the more suited the network is for quickly learning
+    new levels or challenges. The argument for a smaller buffer size is it could teach the network certain
+    quick, easy, repeatable actions that are universally applicable to levels.
+"""
 BATCH_SIZE = 64
-NUM_ACTIONS = 15
-NUM_STATE = 141312
+NUM_ACTIONS = 15 # Total number of actions in the action space
+NUM_STATE = 141312 # Total number of inputs from the environment (i.e. the observation space) This value is numerical observations
 HIDDEN_SIZE = 64
-NUM_LAYERS = 1
+NUM_LAYERS = 1 # Number of layers in the agent and critic networks
 ENTROPY_LOSS = 1e-3
-LR = 1e-4 # Lower lr stabilises training greatly
+LEARNING_RATE = 1e-4 # Lower lr stabilises training greatly
 
-DUMMY_ACTION, DUMMY_VALUE = np.zeros((1, NUM_ACTIONS)), np.zeros((1, 1))
+DUMMY_ACTION, DUMMY_VALUE = np.zeros((1, NUM_ACTIONS)), np.zeros((1, 1)) # Creates array with shape (1, len(action_space)) and a (1, 1) array 
 
 
 @nb.jit
@@ -113,10 +120,10 @@ def proximal_policy_optimization_loss_continuous(advantage, old_prediction):
 class Agent:
     def __init__(self):
         self.critic = self.build_critic()
-        if CONTINUOUS is False:
-            self.actor = self.build_actor()
-        else:
+        if CONTINUOUS:
             self.actor = self.build_actor_continuous()
+        else:
+            self.actor = self.build_actor()
 
         self.env = ENV
         print(self.env.action_space, 'action_space', self.env.observation_space, 'observation_space')
@@ -146,7 +153,7 @@ class Agent:
         out_actions = Dense(NUM_ACTIONS, activation='softmax', name='output')(x)
 
         model = Model(inputs=[state_input, advantage, old_prediction], outputs=[out_actions])
-        model.compile(optimizer=Adam(lr=LR),
+        model.compile(optimizer=Adam(lr=LEARNING_RATE),
                       loss=[proximal_policy_optimization_loss(
                           advantage=advantage,
                           old_prediction=old_prediction)])
@@ -163,10 +170,10 @@ class Agent:
         for _ in range(NUM_LAYERS - 1):
             x = Dense(HIDDEN_SIZE, activation='tanh')(x)
 
-        out_actions = Dense(NUM_ACTIONS, name='output', activation='tanh')(x)
+        out_actions = Dense(NUM_ACTIONS, activation='tanh', name='output')(x)
 
         model = Model(inputs=[state_input, advantage, old_prediction], outputs=[out_actions])
-        model.compile(optimizer=Adam(lr=LR),
+        model.compile(optimizer=Adam(lr=LEARNING_RATE),
                       loss=[proximal_policy_optimization_loss_continuous(
                           advantage=advantage,
                           old_prediction=old_prediction)])
@@ -184,7 +191,7 @@ class Agent:
         out_value = Dense(1)(x)
 
         model = Model(inputs=[state_input], outputs=[out_value])
-        model.compile(optimizer=Adam(lr=LR), loss='mse')
+        model.compile(optimizer=Adam(lr=LEARNING_RATE), loss='mse')
 
         return model
 
@@ -192,28 +199,31 @@ class Agent:
         self.episode += 1
         print("Starting Episode {}\n".format(self.episode))
         if self.episode % 100 == 0:
-            self.val = True
+            self.val = True # Decide to 
         else:
             self.val = False
         self.observation = self.env.reset()
         self.reward = []
 
     def get_action(self):
-        p = self.actor.predict([self.observation.reshape(1, NUM_STATE), DUMMY_VALUE, DUMMY_ACTION])
-        if self.val is False:
-            action = np.random.choice(NUM_ACTIONS, p=np.nan_to_num(p[0]))
+        p = self.actor.predict([self.observation.reshape(1, NUM_STATE), DUMMY_VALUE, DUMMY_ACTION]) # Shapes inputs to make action prediction
+        if self.val:
+            action = np.argmax(p[0]) # Every 100 episodes, choose the highest prob action for success
         else:
-            action = np.argmax(p[0])
-        action_matrix = np.zeros(NUM_ACTIONS)
-        action_matrix[action] = 1
+            action = np.random.choice(NUM_ACTIONS, p=np.nan_to_num(p[0])) # General case is randomly choosing an action with weighted probs based on prediction
+        action_matrix = np.zeros(NUM_ACTIONS) # Creates array of zeros with len(action_space)
+        action_matrix[action] = 1 # Sets the chosen action to a 1 to be interpretble by retro gym
         return action, action_matrix, p
+         # action is the index in the action_space 
+         # action_matrix is the array of 0s with a 1 at the action index
+         # p is the probability of each action being the action to maximize the reward at current timestep
 
     def get_action_continuous(self):
         p = self.actor.predict([self.observation.reshape(1, NUM_STATE), DUMMY_VALUE, DUMMY_ACTION])
-        if self.val is False:
-            action = action_matrix = p[0] + np.random.normal(loc=0, scale=NOISE, size=p[0].shape)
-        else:
+        if self.val:
             action = action_matrix = p[0]
+        else:
+            action = action_matrix = p[0] + np.random.normal(loc=0, scale=NOISE, size=p[0].shape)
         return action, action_matrix, p
 
     def transform_reward(self):
@@ -228,15 +238,15 @@ class Agent:
         batch = [[], [], [], []]
 
         tmp_batch = [[], [], []]
-        while len(batch[0]) < BUFFER_SIZE:
-            if CONTINUOUS is False:
-                action, action_matrix, predicted_action = self.get_action()
-            else:
+        while len(batch[0]) < BUFFER_SIZE: # This loops generates and runs actions until the done condition is met
+            if CONTINUOUS:
                 action, action_matrix, predicted_action = self.get_action_continuous()
-            observation, reward, done, info = self.env.step(action)
-            self.reward.append(reward)
+            else:
+                action, action_matrix, predicted_action = self.get_action()
+            observation, reward, done, info = self.env.step(action) # Take the generated action
+            self.reward.append(reward) # Track reward for action
 
-            tmp_batch[0].append(self.observation)
+            tmp_batch[0].append(self.observation) # This is the observation, numerical/image from the game
             tmp_batch[1].append(action_matrix)
             tmp_batch[2].append(predicted_action)
             self.observation = observation
