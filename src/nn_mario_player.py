@@ -39,7 +39,7 @@ class NNPlayer(AlgorithmBase):
         self.observation = self.env.reset()
         self.val = False                # Boolean denoting if rewards should be maximized based on predictions
         self.reward = []
-        self.reward_over_time = []
+        self.reward_over_time = {}
         self.writer = SummaryWriter(self.record_path)
         self.gradient_steps = 0
 
@@ -132,7 +132,9 @@ class NNPlayer(AlgorithmBase):
         else:
             self.val = False
         self.observation = self.env.reset()
+        self.reward_over_time[self.episode] = np.sum(np.array(self.reward))
         self.reward = []
+
 
     def get_action(self):
         p = self.actor.predict([self.observation.reshape(1, self.NUM_STATE), self.DUMMY_VALUE, self.DUMMY_ACTION]) # Shapes inputs to make action prediction
@@ -217,3 +219,6 @@ class NNPlayer(AlgorithmBase):
             self.writer.add_scalar('Critic Loss', critic_loss.history['loss'][-1], self.gradient_steps)
 
             self.gradient_steps += 1
+        for episode_num, total_reward in self.reward_over_time.items():
+            if total_reward > 1000:
+                print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward))
