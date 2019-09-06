@@ -221,4 +221,4 @@ class NNPlayer(AlgorithmBase):
             self.gradient_steps += 1
         for episode_num, total_reward in self.reward_over_time.items():
             if total_reward > 1000:
-                print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward))
+                print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward)) # This should print good episodes
