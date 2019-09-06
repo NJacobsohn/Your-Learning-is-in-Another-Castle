@@ -1,4 +1,3 @@
-import os
 import retro
 from algorithm_object_base import AlgorithmBase
 from action_discretizer import MarioDiscretizer

@@ -11,37 +11,6 @@ from keras.layers import Dense, Dropout, Activation, Flatten
 from baselines.common.retro_wrappers import StochasticFrameSkip, Rgb2gray, Downsample, RewardScaler
 
 
-"""
-from baselines.a2c import utils
-from baselines.a2c.utils import conv, fc, conv_to_fc, batch_to_seq, seq_to_batch
-
-#define your network. this is the nature CNN with tf.nn.leaky_relu instead of relu
-def custom_cnn(unscaled_images, **conv_kwargs):
-    scaled_images = tf.cast(unscaled_images, tf.float32) / 255.
-    activ = tf.nn.leaky_relu
-    h = activ(conv(scaled_images, 'c1', nf=32, rf=8, stride=4, init_scale=np.sqrt(2),
-                   **conv_kwargs))
-    h2 = activ(conv(h, 'c2', nf=64, rf=4, stride=2, init_scale=np.sqrt(2), **conv_kwargs))
-    h3 = activ(conv(h2, 'c3', nf=64, rf=3, stride=1, init_scale=np.sqrt(2), **conv_kwargs))
-    h3 = conv_to_fc(h3)
-    return activ(fc(h3, 'fc1', nh=512, init_scale=np.sqrt(2)))
-
-#register your network
-@register("custom_cnn")
-def your_network_define(**conv_kwargs):
-    def network_fn(X):
-        return custom_cnn(X, **conv_kwargs)
-    return network_fn
-    
-#pass the network to arguments
-ppo2.learn(network='custom_cnn',...)
-"""
-
-
-#env = DummyVecEnv([test_vec_env_builder]) #vectorizes environment for parallel computing/envs. MUST BE DONE FOR PPO
-#ppo2.learn(network="cnn", env=env, total_timesteps=5000)
-
-
 class CNNPlayer(AlgorithmBase):
     """
     This is a player that learns how to play mario based on 

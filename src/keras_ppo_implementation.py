@@ -11,7 +11,7 @@ THINGS THIS CODE NEEDS TO DO:
 
     Option to play each episode after it completes
 
-    Plot loss/rewards/actions/etc. each episode
+    Plot/save loss/rewards/actions/etc. each episode? (I think tensorboardX is doing something like this)
 
     Convert code to work with images
 
@@ -19,15 +19,11 @@ THINGS THIS CODE NEEDS TO DO:
 
     Adjust NN structure?
 
-    *** FOR THE LOVE OF GOD MAKE THIS INTO AN OBJECT THAT'S EASILY CALLABLE ***
+    *** FOR THE LOVE OF GOD MAKE THIS INTO AN OBJECT THAT WORKS WITH train_on_emulator.py!! ***
 """
-
-
-# Initial framework taken from https://github.com/jaara/AI-blog/blob/master/CartPole-A3C.py
 
 import numpy as np
 
-import gym
 import retro
 
 from action_discretizer import MarioDiscretizer
@@ -36,10 +32,14 @@ from baselines.common.retro_wrappers import StochasticFrameSkip, Rgb2gray, Downs
 from keras.models import Model
 from keras.layers import Input, Dense
 from keras import backend as K
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 
-import numba as nb
-from tensorboardX import SummaryWriter
+"""
+    Below this is a version of tensorboard that exists for non-tf libraries like pytorch.
+    I'm not sure why it was used here as opposed to regular tensorboard as it works with keras.
+    I'm keeping it as is until I want some training visualizations, then I'm porting it over to regular tensorboard
+"""
+from tensorboardX import SummaryWriter  
 
 def make_env():
     env = retro.make(
@@ -59,7 +59,7 @@ def make_env():
 ENV = make_env()
 CONTINUOUS = False
 
-EPISODES = 25 # Number of episodes to train over
+EPISODES = 5 # Number of episodes to train over
 
 LOSS_CLIPPING = 0.2 # Only implemented clipping for the surrogate loss, paper said it was best
 EPOCHS = 10 # Number of Epochs to optimize on between episodes
@@ -84,12 +84,6 @@ ENTROPY_LOSS = 1e-3
 LEARNING_RATE = 1e-4 # Lower lr stabilises training greatly
 
 DUMMY_ACTION, DUMMY_VALUE = np.zeros((1, NUM_ACTIONS)), np.zeros((1, 1)) # Creates array with shape (1, len(action_space)) and a (1, 1) array 
-
-
-@nb.jit
-def exponential_average(old, new, b1):
-    return old * b1 + (1-b1) * new
-
 
 def proximal_policy_optimization_loss(advantage, old_prediction):
     def loss(y_true, y_pred):
@@ -243,7 +237,7 @@ class Agent:
                 action, action_matrix, predicted_action = self.get_action_continuous()
             else:
                 action, action_matrix, predicted_action = self.get_action()
-            observation, reward, done, info = self.env.step(action) # Take the generated action
+            observation, reward, done, _ = self.env.step(action) # Take the generated action
             self.reward.append(reward) # Track reward for action
 
             tmp_batch[0].append(self.observation) # This is the observation, numerical/image from the game

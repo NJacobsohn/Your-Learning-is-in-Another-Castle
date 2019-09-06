@@ -20,11 +20,12 @@ def create_parser():
     parser.add_argument("-r", "--record", default="learning_movies/", help="Choose a directory to record the training session to", type=str)
     parser.add_argument("-v", "--variables", default="variables/data.json", help="Path to reward variable json", type=str)
     parser.add_argument("-a", "--algorithm", default="random", 
-        help="""Pick name of algorithm to run. 
+        help="""Pick name of algorithm (and sometimes model) to run. 
                 Current options are:
                     Brute
                     Random
-                    PPO
+                    CNNPPO
+                    NNPPO
 
                 Planned options:
                     deepq
@@ -34,54 +35,37 @@ def create_parser():
                     trpo
                     ddpg
                 """)
-    parser.add_argument("-m", "--model", default=None, 
-        help="""Pick type of model to run with chosen algorithm.
-                This argument is only necessary (currently) when PPO is chosen for algorithm.
-
-                This argument does literally nothing if PPO isn't specified. 
-
-                Current options are:
-                    CNN *non-functioning model
-                    NN *non-functioning model
-
-                Planned options:
-                    LSTM?
-                    XGBoost?
-                """)
                 
     return parser
 
 
 def choose_algorithm(args):
-        """
-        This is a (relatively) pythonic implementation of a switch statement.
+    """
+    This is a (relatively) pythonic implementation of a switch statement.
 
-        It's technically a nested switch statement with the PPO option
-        Formatting it like this makes adding more models/algorithms very easy
-        """
+    It's technically a nested switch statement with the PPO option
+    Formatting it like this makes adding more models/algorithms very easy
+    """
 
-        switch_dict = {
+    switch_dict = {
         "brute" : brute_alg,
         "random" : random_alg,
-        "ppo" : {
-            "cnn" : cnn_model,
-            "nn" : nn_model
-            }
-        }
+        "cnnppo" :  cnn_model,
+        "nnppo" : nn_model}
 
-        try:
-            model = args.model.lower()
-        except:
-            print("No model was chosem")
+    algorithm = args.algorithm.lower()
 
-        algorithm = args.algorithm.lower()
-
-        if algorithm == "ppo":
-            func = switch_dict.get(algorithm).get(model, "No model found for PPO") #nested .get for ppo dictionary
-        else:
-            func = switch_dict.get(algorithm, "No algorithm of type: {0} found".format(algorithm)) 
-            
-        return func(args)
+    func = switch_dict.get(
+        algorithm, 
+        """
+        No algorithm of type: {0} found\nThe current options are:\n
+            Random
+            Brute
+            CNNPPO
+            NNPPO
+        """.format(algorithm)) 
+        
+    return func(args)
 
 def brute_alg(args):
     return BrutePlayer(args.project, args.game, args.scenario, args.variables, args.observations, args.record)
