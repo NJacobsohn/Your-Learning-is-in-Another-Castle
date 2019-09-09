@@ -2,10 +2,10 @@ import retro
 import numpy as np
 
 from keras import backend as K
+from keras.models import Model
 from keras.layers import Input, Dense
-from keras.optimizers import Adam, SGD
-from keras.models import Sequential, Model
-from keras.layers import Dropout, Activation
+from keras.optimizers import Adam, SGD #SGD isn't implemented yet but I would love to try it
+
 
 from algorithm_object_base import AlgorithmBase
 from action_discretizer import MarioDiscretizer
@@ -20,8 +20,12 @@ from tensorboardX import SummaryWriter
 
 class NNPlayer(AlgorithmBase):
     """
-    This is a player that learns how to play mario based on 
-    the values in the game (position, coins, score, lives, etc.) + reinforcement rewards
+    This is a player that learns how to play mario based on the values in the game
+    (position, coins, score, lives, etc.) + reinforcement rewards
+
+    This uses an implementation of PPO that I built based off of various other implementations I've seen
+    I built my own rather than using someone else's because I couldn't find anyone that not only used retrogym,
+    but also had keras model functionality
     
     *** This network does NOT see the screen or learn off of the screen at any time ***
     """
@@ -37,7 +41,7 @@ class NNPlayer(AlgorithmBase):
         
         self.episode = 0                # Current episode
         self.observation = self.env.reset()
-        self.val = False                # Boolean denoting if rewards should be maximized based on predictions
+        self.FORCE_MAX_REWARD = False                # Boolean denoting if rewards should be maximized based on predictions
         self.reward = []
         self.reward_over_time = {}
         self.writer = SummaryWriter(self.record_path)
@@ -128,9 +132,9 @@ class NNPlayer(AlgorithmBase):
         self.episode += 1
         print("Starting Episode {}\n".format(self.episode))
         if self.episode % 100 == 0:
-            self.val = True 
+            self.FORCE_MAX_REWARD = True 
         else:
-            self.val = False
+            self.FORCE_MAX_REWARD = False
         self.observation = self.env.reset()
         self.reward_over_time[self.episode] = np.sum(np.array(self.reward))
         self.reward = []
@@ -138,7 +142,7 @@ class NNPlayer(AlgorithmBase):
 
     def get_action(self):
         p = self.actor.predict([self.observation.reshape(1, self.NUM_STATE), self.DUMMY_VALUE, self.DUMMY_ACTION]) # Shapes inputs to make action prediction
-        if self.val:
+        if self.FORCE_MAX_REWARD:
             action = np.argmax(p[0]) # Every 100 episodes, choose the highest prob action for success
         else:
             action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0])) # General case is randomly choosing an action with weighted probs based on prediction
@@ -150,8 +154,8 @@ class NNPlayer(AlgorithmBase):
                     # p is the probability of each action being the action to maximize the reward at current timestep
 
     def transform_reward(self):
-        if self.val is True:
-            self.writer.add_scalar('Val Episode Reward', np.array(self.reward).sum(), self.episode)
+        if self.FORCE_MAX_REWARD is True:
+            self.writer.add_scalar('Forced Max Episode Reward', np.array(self.reward).sum(), self.episode)
         else:
             self.writer.add_scalar('Episode Reward', np.array(self.reward).sum(), self.episode)
         for j in range(len(self.reward) - 2, -1, -1):
@@ -183,7 +187,7 @@ class NNPlayer(AlgorithmBase):
 
             if done:    # Level was either completed or Mario died
                 self.transform_reward()     # Scale rewards
-                if not self.val:                        # Do this for all episodes EXCEPT episodes divisible by 100
+                if not self.FORCE_MAX_REWARD:                        # Do this for all episodes EXCEPT episodes divisible by 100
                     for i in range(len(tmp_batch[0])):  # For each observation
                         obs, action, pred = tmp_batch[0][i], tmp_batch[1][i], tmp_batch[2][i]
                                                         # Grabs observations, action matrices, and action probability predictions
