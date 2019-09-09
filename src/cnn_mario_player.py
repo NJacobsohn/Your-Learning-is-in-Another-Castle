@@ -7,6 +7,10 @@ refcatored to work with image data + a CNN rather than numerical data + regular 
 Some nice features that should be added to this (or maybe even a custom object should be made):
 
     Auto-create directory within the project directory that saves the model and weights
+
+    Ability to load saved weights/models to check performance on other levels
+
+    Save reward analytics / loss / any and all numbers to plot and analyze
 """
 import retro
 import numpy as np
@@ -50,7 +54,7 @@ class CNNPlayer(AlgorithmBase):
         
         self.episode = 0                # Current episode
         self.observation = self.env.reset()
-        self.FORCE_MAX_REWARD = False                # Boolean denoting if rewards should be maximized based on predictions
+        self.FORCE_MAX_REWARD = False   # Boolean denoting if rewards should be maximized based on predictions (I think I'm going to remove this honestly)
         self.reward = []
         self.reward_over_time = {}
         self.writer = SummaryWriter(self.record_path)
@@ -86,8 +90,8 @@ class CNNPlayer(AlgorithmBase):
         self.DUMMY_VALUE = np.zeros((1, 1))                 # Creates array with shape (1, 1)
                                                             # These are used as action/prediction placeholders 
 
-        self.critic = self.build_critic()                   # Builds critic model
-        self.actor = self.build_actor()                     # Builds actor model
+        self.critic = self.build_critic()                   
+        self.actor = self.build_actor()                     # Builds critic/actor model
 
 
     def proximal_policy_optimization_loss(self, advantage, old_prediction): # Custom loss function
