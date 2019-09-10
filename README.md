@@ -59,6 +59,8 @@ These actions are defined in a custom wrapper for the environment, which can be 
 
 ## **PPO**
 
+In order to properly optimize how these models learn, I adapted a very popular reinforcement learning algorithm called Proximal Policy Optimization. I made my own adaptation of it to work with keras models, as I vastly prefer using keras over just tensorflow and I wasn't able to find any implementations of it already made for keras and retrogym.
+
 ## **Image vs. Numerical Models**
 
 ## **Conclusion**
