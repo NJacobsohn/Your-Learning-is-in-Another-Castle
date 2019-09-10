@@ -30,7 +30,32 @@ I used a addon for gym called retrogym which has support for quite a few older e
 
 ## **Environment Setup**
 
-In order to setup my custom environment, I had quite a few things I had to work out. First, how would I actually give incremental rewards to push the model to try and beat a level? Second, how could I define if a level was beaten? Third, how do I stop the model from doing what I call "idiot actions" like pausing the game, accidentally quitting, etc.? To tackle the first problem, I had to look into if there was a variable in the game that tracks the player's position in a level.
+In order to setup my custom environment, I had quite a few things I had to work out. First, how would I actually give incremental rewards to push the model to try and beat a level? Second, how could I define if a level was beaten? Third, how do I stop the model from doing what I call "idiot actions" like pausing the game, accidentally quitting, etc.? To tackle the first problem, I had to look into if there was a variable in the game that tracks the player's position in a level. To find this and any other variables, I had to follow memory maps (locations in RAM on where these variables are set to save to) and then actually pull those values from the emulator using retrogym's handy game integration tool. I needed the location in memory in base 16 (e.g. 7E13CE for if the midway flag was crossed), which then is converted to its base 10 value automatically by the integration tool (for the earlier example, it's now 8262606) to be used by the python environment. Another important part of these variables which had to be specified was their endiannesses, how many bytes they were, and whether or not it was a signed int. These values can be found in [this .json file I built.](https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/variables/data.json)
+
+After much searching and sifting, I finally found what I think to be a pretty good set of variables to work with. Each variable in the above link had to also be defined in the training scenario for the networks. The [scenario.json file](https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/scenarios/scenario.json) I built uses the variables I defined in the data.json to define the training environment. The training session is considered done if Mario loses a life or completes the level. The primary reward is distance traveled on the x axis within a level, with considerably large rewards given to reaching the midway checkpoint and completing the whole level. This was done to ensure that the best way to achieve the highest possible score involved beating the level, not using shenanigans like leaving and entering an area to spawn more enemies.
+
+There were many ways I tried to define if a level was beaten, as there's no 0/1 value that just means "Finish line crossed y/n". At first I used a countdown to when your final score is calculated after beating a level, but I found that to be very unreliable. I also tried using a value which has Mario's status in the overworld (level selection screen), but that wouldn't apply until a level was beaten and Mario had returned to the level selection screen. This became an issue as sometimes the network would very quickly be able to enter a new level before the done condition would trigger, then it wouldn't ever trigger due to being inside of a level again. The final decision was a conditional variable that represents how the curren level was exited. This works not only for quickly telling the network it's done when the final calculations were complete, but also properly rewards the network for beating a level.
+
+So we've got all the variables defined and all their locations in memory have been tracked down, now it's time to limit the action space of the environment to prevent the aforementioned idiot actions from occurring. I decided on the following set of 17 actions for the network to be allowed to use:
+
+The following actions have a regular version, and a sprinting version (12 actions):
+
+- Move Left
+- Move Right
+- Regular Jump Left
+- Regular Jump Right
+- Spin Jump Left
+- Spin Jump Right
+
+The following actions only exist in their explicitly defined forms (5 actions):
+
+- Regular Jump in place
+- Spin Jump in place (allows for bouncing on certain enemies, I wanted to keep it in to see it it'd learn more advanced tactics)
+- Look Up
+- Look Down (necessary for entering pipes)
+- Jump in place and Look Up (necessary for entering pipes on the ceiling)
+
+These actions are defined in a custom wrapper for the environment, which can be explored in my [action discretizer script.](https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/src/action_discretizer.py)
 
 ## **PPO**
 
