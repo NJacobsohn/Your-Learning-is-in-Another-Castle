@@ -78,7 +78,7 @@ class CNNPlayer(AlgorithmBase):
         """
         self.BATCH_SIZE = 64        # Batch size when fitting network. Smaller batch size = more weight updates.
                                     # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
-        self.NUM_ACTIONS = 15       # Total number of actions in the action space
+        self.NUM_ACTIONS = 17       # Total number of actions in the action space
         self.NUM_STATE = 141312         # This boy needs to be changed to reflect the image size
         self.NUM_FILTERS = 16           # Preliminary number of filters for the layers in agent/critic networks
         self.HIDDEN_SIZE = 24           # Number of neurons in actor/critic network final dense layer (if applicable)

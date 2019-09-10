@@ -65,7 +65,7 @@ class NNPlayer(AlgorithmBase):
         """
         self.BATCH_SIZE = 64        # Batch size when fitting network. Smaller batch size = more weight updates.
                                     # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
-        self.NUM_ACTIONS = 15       # Total number of actions in the action space
+        self.NUM_ACTIONS = 17       # Total number of actions in the action space
         self.NUM_STATE = 141312     # Total number of inputs from the environment (i.e. the observation space) This value is numerical observations
         self.HIDDEN_SIZE = 24       # Number of neurons in actor/critic network layers (6144 is a factor of 141312)
         self.NUM_LAYERS = 2         # Number of layers in the agent and critic networks

@@ -44,8 +44,10 @@ class MarioDiscretizer(Discretizer):
             ['X', 'LEFT'], #sprint left
             ['B'], #regular jump in place
             ['A'], #spin jump (also jump off yoshi) in place
-            ['RIGHT', 'B'], #jump right
-            ['LEFT', 'B'], #jump left
+            ['RIGHT', 'B'], #regular jump right
+            ['LEFT', 'B'], #regular jump left
+            ['RIGHT', 'A'], #spin jump right
+            ['LEFT', 'A'], #spin jump left
             ['X', 'RIGHT', 'B'], #sprint jump right
             ['X', 'LEFT', 'B'], #sprint jump left
             ['X', 'RIGHT', 'A'], #sprint spin jump right
