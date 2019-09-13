@@ -35,7 +35,7 @@
         "op": "equal",
         "measurement": "delta",
         "reference": 1,
-        "reward": 1000.0
+        "reward": 100.0
       },
       "positionx": {
         "op": "sign",
@@ -58,7 +58,7 @@
       "exit_type":{
         "op": "equal",
         "reference": 1,
-        "reward": 5000.0
+        "reward": 500.0
       }
     },
     "time": {
