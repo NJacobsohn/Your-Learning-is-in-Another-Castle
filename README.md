@@ -59,7 +59,11 @@ These actions are defined in a custom wrapper for the environment, which can be 
 
 ## **PPO**
 
-In order to properly optimize how these models learn, I adapted a very popular reinforcement learning algorithm called Proximal Policy Optimization. I made my own adaptation of it to work with keras models, as I vastly prefer using keras over just tensorflow and I wasn't able to find any implementations of it already made for keras and retrogym.
+In order to properly optimize how these models learn, I adapted a very popular reinforcement learning algorithm called Proximal Policy Optimization. I made my own adaptation of it to work with keras models, as I vastly prefer using keras over just tensorflow and I wasn't able to find any implementations of it already made for keras and retrogym. The basics of my implementation of PPO is there are 2 neural networks, an actor and a critic. The actor looks at the state of the game (141312 inputs for numerical observation or a 256x224x3 image for visual observation) and makes a prediction of an action to take at the current timestep. The critic looks at the state of the game and predicts what the reward will be for the next timestep. It subtracts the predicted reward from the actual reward to calculate what's called the advantage, which, along with the previous prediction, is used as the parameters of the loss function of the actor network. Basically the actor picks an action at a given timestep, the critic evaluates what the reward *should* be given the best action was chosen, then optimizes the networks based on how wrong they were.
+
+To read a much more math and computer science oriented explanation of PPO, check out the [paper written about it.](https://arxiv.org/abs/1707.06347)
+
+To check out a more digestible (not quite layman's terms, but with a lexicon less nestled in academia), [OpenAI has a good post about it.](https://openai.com/blog/openai-baselines-ppo/)
 
 ## **Image vs. Numerical Models**
 
