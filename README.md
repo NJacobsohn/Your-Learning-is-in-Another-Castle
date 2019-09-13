@@ -38,7 +38,7 @@ There were many ways I tried to define if a level was beaten, as there's no 0/1 
 
 So we've got all the variables defined and all their locations in memory have been tracked down, now it's time to limit the action space of the environment to prevent the aforementioned idiot actions from occurring. I decided on the following set of 17 actions for the network to be allowed to use:
 
-The following actions have a regular version, and a sprinting version (12 actions):
+The following actions have a regular version, and a sprinting version (12 total actions):
 
 - Move Left
 - Move Right
@@ -47,10 +47,10 @@ The following actions have a regular version, and a sprinting version (12 action
 - Spin Jump Left
 - Spin Jump Right
 
-The following actions only exist in their explicitly defined forms (5 actions):
+The following actions only exist in these explicitly defined forms (5 actions):
 
 - Regular Jump in place
-- Spin Jump in place (allows for bouncing on certain enemies, I wanted to keep it in to see it it'd learn more advanced tactics)
+- Spin Jump in place (allows for bouncing on certain enemies, I wanted to keep it in to see if it'd learn more advanced tactics)
 - Look Up
 - Look Down (necessary for entering pipes)
 - Jump in place and Look Up (necessary for entering pipes on the ceiling)
@@ -66,6 +66,10 @@ To read a much more math and computer science oriented explanation of PPO, check
 To check out a more digestible (not quite layman's terms, but with a lexicon less nestled in academia), [OpenAI has a good post about it.](https://openai.com/blog/openai-baselines-ppo/)
 
 ## **Image vs. Numerical Models**
+
+I touched on this briefly in the PPO explanation, but retrogym offers two different observation types for its emulators. The first and default being visual observations. What this means (this is default settings and can be changed in many ways) is that every frame of the game is a timestep, and each timestep gives a screenshot of the current frame to the network to make a prediction. The network only sees the screen and the varios parts of it. For numerical observation, each time step returns (instead of an image) an array of 16 bit integers of the memory state of the game. That means the model never sees what the game actually looks like, it predicts all of its actions and rewards completely blindly.
+
+There are pitfalls of each of these approaches, for the numerical analysis, it's very easy for the network to memorize exactly how to beat a given level, but the skills aren't transferrable to other levels. It learns stuff like "at x units through the level, a spin jump action doesn't get me killed", but not things like "When I see a gap/goomba/koopa/etc., that means I should jump". So for making a model that's objectively good at Mario (regardless of level), this isn't a good approach. The image analysis side isn't free of issues either though. Using a CNN (even at a small level) can be VERY computationally expensive and drastically increase training times. The image approach, (I'll update this when I tune a CNN more with this game) while at the end of the day produces a better Mario player, takes a lot longer to get to the point of beating levels as it's learning how to play Mario, not necessarily just exactly beat the level it's on as quickly as possible.
 
 ## **Conclusion**
 
