@@ -47,7 +47,7 @@ class NNPlayer(AlgorithmBase):
         self.writer = SummaryWriter(self.record_path)
         self.gradient_steps = 0
 
-        self.MAX_EPISODES = 250     # Number of episodes to train over
+        self.MAX_EPISODES = 500     # Number of episodes to train over
 
         self.LOSS_CLIPPING = 0.2    # Only implemented clipping for the surrogate loss, paper said it was best
         self.EPOCHS = 10            # Number of Epochs to optimize on between episodes
@@ -68,7 +68,7 @@ class NNPlayer(AlgorithmBase):
         self.NUM_ACTIONS = 17       # Total number of actions in the action space
         self.NUM_STATE = 141312     # Total number of inputs from the environment (i.e. the observation space) This value is numerical observations
         self.HIDDEN_SIZE = 24       # Number of neurons in actor/critic network layers (6144 is a factor of 141312)
-        self.NUM_LAYERS = 2         # Number of layers in the agent and critic networks
+        self.NUM_LAYERS = 3         # Number of layers in the agent and critic networks
         self.ENTROPY_LOSS = 1e-3    # Variable in loss function, helps loss scale properly (I think)
         self.LEARNING_RATE = 1e-4   # Lower lr stabilises training greatly
 
@@ -118,8 +118,8 @@ class NNPlayer(AlgorithmBase):
 
         state_input = Input(shape=(self.NUM_STATE,)) # Input size is the len(observation_space)
         x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input) # Add dense layer with input of correct size
-        for _ in range(self.NUM_LAYERS - 1): # Iterate to add network layers
-            x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
+        for i in range(self.NUM_LAYERS - 1): # Iterate to add network layers
+            x = Dense(self.HIDDEN_SIZE * (i+1), activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
 
         out_value = Dense(1)(x) # Predict reward
 
