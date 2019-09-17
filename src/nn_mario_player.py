@@ -47,7 +47,7 @@ class NNPlayer(AlgorithmBase):
         self.writer = SummaryWriter(self.record_path)
         self.gradient_steps = 0
 
-        self.MAX_EPISODES = 500     # Number of episodes to train over
+        self.MAX_EPISODES = 100     # Number of episodes to train over
 
         self.LOSS_CLIPPING = 0.2    # Only implemented clipping for the surrogate loss, paper said it was best
         self.EPOCHS = 10            # Number of Epochs to optimize on between episodes
@@ -136,7 +136,7 @@ class NNPlayer(AlgorithmBase):
         else:
             self.FORCE_MAX_REWARD = False
         self.observation = self.env.reset()
-        self.reward_over_time[self.episode] = np.sum(np.array(self.reward))
+        self.reward_over_time[self.episode] = np.max(np.array(self.reward)) # saves highest single reward for future printing
         self.reward = []
 
 
@@ -224,5 +224,9 @@ class NNPlayer(AlgorithmBase):
 
             self.gradient_steps += 1
         for episode_num, total_reward in self.reward_over_time.items():
-            if total_reward > 250:
+            if total_reward > 0: #200:
                 print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward)) # This should print good episodes
+        # Verbosity Guide:
+        # > 100: prints a lot of episodes, even some where the midway point wasn't reached
+        # > 200: should print most midpoint crossings (low chance to miss it)
+        # > 400: should pretty much only print level completions and outliers (this is nice)

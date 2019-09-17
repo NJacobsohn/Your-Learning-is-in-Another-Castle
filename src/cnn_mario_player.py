@@ -167,7 +167,7 @@ class CNNPlayer(AlgorithmBase):
         else:
             self.FORCE_MAX_REWARD = False
         self.observation = self.env.reset()
-        self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # Should sum up rewards for each episode?
+        self.reward_over_time[self.episode] = np.max(np.array(self.reward)) # Attempt at fixing rewards
         self.reward = []
 
 
@@ -259,5 +259,9 @@ class CNNPlayer(AlgorithmBase):
 
             self.gradient_steps += 1
         for episode_num, total_reward in self.reward_over_time.items():
-            if total_reward > 250:
+            if total_reward > 400:
                 print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward)) # This should print good episodes
+        # Verbosity Guide:
+        # > 100: prints a lot of episodes, even some where the midway point wasn't reached
+        # > 200: should print most midpoint crossings (low chance to miss it)
+        # > 400: should pretty much only print level completions and outliers (this is nice)
