@@ -47,7 +47,7 @@ class NNPlayer(AlgorithmBase):
         self.writer = SummaryWriter(self.record_path)
         self.gradient_steps = 0
 
-        self.MAX_EPISODES = 100     # Number of episodes to train over
+        self.MAX_EPISODES = 10     # Number of episodes to train over
 
         self.LOSS_CLIPPING = 0.2    # Only implemented clipping for the surrogate loss, paper said it was best
         self.EPOCHS = 10            # Number of Epochs to optimize on between episodes
@@ -68,7 +68,7 @@ class NNPlayer(AlgorithmBase):
         self.NUM_ACTIONS = 17       # Total number of actions in the action space
         self.NUM_STATE = 141312     # Total number of inputs from the environment (i.e. the observation space) This value is numerical observations
         self.HIDDEN_SIZE = 24       # Number of neurons in actor/critic network layers (6144 is a factor of 141312)
-        self.NUM_LAYERS = 3         # Number of layers in the agent and critic networks
+        self.NUM_LAYERS = 1         # Number of layers in the agent and critic networks
         self.ENTROPY_LOSS = 1e-3    # Variable in loss function, helps loss scale properly (I think)
         self.LEARNING_RATE = 1e-4   # Lower lr stabilises training greatly
 
@@ -136,7 +136,7 @@ class NNPlayer(AlgorithmBase):
         else:
             self.FORCE_MAX_REWARD = False
         self.observation = self.env.reset()
-        self.reward_over_time[self.episode] = np.max(np.array(self.reward)) # saves highest single reward for future printing
+        self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # saves total reward for future printing
         self.reward = []
 
 
@@ -225,7 +225,7 @@ class NNPlayer(AlgorithmBase):
             self.gradient_steps += 1
         for episode_num, total_reward in self.reward_over_time.items():
             if total_reward > 0: #200:
-                print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward)) # This should print good episodes
+                print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward)) # This should print good episodes"""
         # Verbosity Guide:
         # > 100: prints a lot of episodes, even some where the midway point wasn't reached
         # > 200: should print most midpoint crossings (low chance to miss it)

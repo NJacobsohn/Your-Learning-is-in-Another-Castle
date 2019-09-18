@@ -167,7 +167,7 @@ class CNNPlayer(AlgorithmBase):
         else:
             self.FORCE_MAX_REWARD = False
         self.observation = self.env.reset()
-        self.reward_over_time[self.episode] = np.max(np.array(self.reward)) # Attempt at fixing rewards
+        self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # Saves total rewards for future printing
         self.reward = []
 
 
