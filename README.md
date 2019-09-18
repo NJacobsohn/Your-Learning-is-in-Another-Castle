@@ -8,6 +8,8 @@
 4. [Environment Setup](#environment-setup)
 5. [PPO](#ppo)
 6. [Image vs. Numerical Models](#image-vs.-numerical-models)
+    - [The Numerical Model](#the-numerical-model)
+    - [The Image Model](#the-image-model)
 7. [Conclusion](#conclusion)
 8. [What's Next?](#what's-next?)
 9. [Photo and Code Credits](#photo-and-code-credits)
@@ -23,6 +25,8 @@ Videogames have always held a near and dear place in my heart. Whether it's some
 - Do skills learned from seeing the screen differ from not seeing it?
 
 - Do skills translate across multiple levels, worlds, even games?
+
+- Can a model be trained to essentially recreate a TAS (Tool-assisted speedrun)?
 
 ## **Environment**
 
@@ -59,11 +63,11 @@ These actions are defined in a custom wrapper for the environment, which can be 
 
 ## **PPO**
 
-In order to properly optimize how these models learn, I adapted a very popular reinforcement learning algorithm called Proximal Policy Optimization. I made my own adaptation of it to work with keras models, as I vastly prefer using keras over just tensorflow and I wasn't able to find any implementations of it already made for keras and retrogym. The basics of my implementation of PPO is there are 2 neural networks, an actor and a critic. The actor looks at the state of the game (141312 inputs for numerical observation or a 256x224x3 image for visual observation) and makes a prediction of an action to take at the current timestep. The critic looks at the state of the game and predicts what the reward will be for the next timestep. It subtracts the predicted reward from the actual reward to calculate what's called the advantage, which, along with the previous prediction, is used as the parameters of the loss function of the actor network. Basically the actor picks an action at a given timestep, the critic evaluates what the reward *should* be given the best action was chosen, then optimizes the networks based on how wrong they were.
+In order to properly optimize how these models learn, I adapted a popular reinforcement learning algorithm called Proximal Policy Optimization. I adapted my own version of it to work with keras and retrogym from other projects people have done using PPO and gym. The basics of my implementation of PPO is there are 2 neural networks, an actor and a critic. The actor looks at the state of the game (141312 inputs for numerical observation or a 256x224x3 image for visual observation) and makes a prediction of an action to take at the current timestep. The critic looks at the state of the game and predicts what the reward will be for the next timestep. It subtracts the predicted reward from the actual reward to calculate what's called the advantage, which, along with the previous prediction, is used as the parameters of the loss function of the actor network. Basically the actor picks an action at a given timestep, the critic evaluates what the reward *should* be given the best action was chosen, then optimizes the networks based on how wrong they were.
 
-To read a much more math and computer science oriented explanation of PPO, check out the [paper written about it.](https://arxiv.org/abs/1707.06347)
+To read a much more intensive explanation of PPO, check out the [paper written about it.](https://arxiv.org/abs/1707.06347)
 
-To check out a more digestible (not quite layman's terms, but with a lexicon less nestled in academia), [OpenAI has a good post about it.](https://openai.com/blog/openai-baselines-ppo/)
+To check out a more digestible explanation, (not quite layman's terms, but with a lexicon less nestled in academia) [OpenAI has a good blog post about it.](https://openai.com/blog/openai-baselines-ppo/)
 
 ## **Image vs. Numerical Models**
 
@@ -71,8 +75,25 @@ I touched on this briefly in the PPO explanation, but retrogym offers two differ
 
 There are pitfalls of each of these approaches, for the numerical analysis, it's very easy for the network to memorize exactly how to beat a given level, but the skills aren't transferrable to other levels. It learns stuff like "at x units through the level, a spin jump action doesn't get me killed", but not things like "When I see a gap/goomba/koopa/etc., that means I should jump". So for making a model that's objectively good at Mario (regardless of level), this isn't a good approach. The image analysis side isn't free of issues either though. Using a CNN (even at a small level) can be VERY computationally expensive and drastically increase training times. The image approach, (I'll update this when I tune a CNN more with this game) while at the end of the day produces a better Mario player, takes a lot longer to get to the point of beating levels as it's learning how to play Mario, not necessarily just exactly beat the level it's on as quickly as possible.
 
+## **The Numerical Model**
+
+## **The Image Model**
+
 ## **Conclusion**
+
+Currently the only model that is up and running is the numerical model, so I don't have any evidence that one type may be better than another. I have a hunch that a CNN will be better overall, as it'd learn things like jumping when seeing an enemy (rather than jumping at 852 units in the level or something).
 
 ## **What's Next?**
 
+- Get my PPO implementation to work with CNNs
+- Plot relative learning rates (by looking at rewards) of NN and CNN
+- Implement other optimization algorithms and/or models
+- View how model(s) performance changes from level to level
+- Train a "master" model of each type on various levels in hopes of creating a TAS machine
+
 ## **Photo and Code Credits**
+
+- [PPO Paper](https://arxiv.org/abs/1707.06347)
+- [OpenAI PPO Blog Post](https://openai.com/blog/openai-baselines-ppo/)
+- [PPO Framwork I Adapted](https://github.com/LuEE-C/PPO-Keras/blob/master/Main.py)
+- [Super Mario World Memory Map](https://www.smwcentral.net/?p=memorymap&game=smw&region=ram)
