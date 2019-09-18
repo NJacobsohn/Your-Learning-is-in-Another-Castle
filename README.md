@@ -79,9 +79,19 @@ There are pitfalls of each of these approaches, for the numerical analysis, it's
 
 This is what I feel is a silly model. While it was the easiest to setup, it loves to memorize levels rather than actually just being good at Mario. But ultimately you're this far down this readme because you want to see a neural network play Mario. Well this is the correct section for it!
 
+The following gifs are from a 2 layer network, the first layer had 24 neurons and the second layer had 48. It used tanh activation with the Adam optimizer. (This is the layout of both the actor and critic network). Each episode is an attempt at beating the level, so episode 0 it has no idea what it's doing. As you can see, by episode 50 it started to learn to traverse the level rather than jump around randomly.  
+
 Episode 0                  |  Episode 50
 :-------------------------:|:-------------------------:
 ![nn_episode0][nn_episode0]  |  ![nn_episode50][nn_episode50]
+
+Episode 120 here is an example of showing that the model doesn't just get better each time. It still dies at parts that it had beaten before as it's trying new actions/different jump timings, etc.
+
+But on episode 241, it finally happened. The very first level completion by my own model (might I add, the very first time any iteration of any of my models beat a level)
+
+Episode 120                  |  Episode 241
+:-------------------------:|:-------------------------:
+![nn_episode120][nn_episode120]  |  ![nn_episode241][nn_episode241]
 
 ## **The Image Model**
 
@@ -110,3 +120,5 @@ Currently the only model that is up and running is the numerical model, so I don
 
 [nn_episode0]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode0.gif
 [nn_episode50]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode50.gif
+[nn_episode120]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode120.gif
+[nn_episode241]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode241.gif
