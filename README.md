@@ -77,7 +77,15 @@ There are pitfalls of each of these approaches, for the numerical analysis, it's
 
 ## **The Numerical Model**
 
+This is what I feel is a silly model. While it was the easiest to setup, it loves to memorize levels rather than actually just being good at Mario. But ultimately you're this far down this readme because you want to see a neural network play Mario. Well this is the correct section for it!
+
+Episode 0                  |  Episode 50
+:-------------------------:|:-------------------------:
+![nn_episode0][nn_episode0]  |  ![nn_episode50][nn_episode50]
+
 ## **The Image Model**
+
+This model is still under construction!
 
 ## **Conclusion**
 
@@ -97,3 +105,8 @@ Currently the only model that is up and running is the numerical model, so I don
 - [OpenAI PPO Blog Post](https://openai.com/blog/openai-baselines-ppo/)
 - [PPO Framwork I Adapted](https://github.com/LuEE-C/PPO-Keras/blob/master/Main.py)
 - [Super Mario World Memory Map](https://www.smwcentral.net/?p=memorymap&game=smw&region=ram)
+
+
+
+[nn_episode0]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode0.gif
+[nn_episode50]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode50.gif
