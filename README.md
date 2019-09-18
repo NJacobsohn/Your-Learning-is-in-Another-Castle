@@ -1,5 +1,7 @@
 # Your Learning is in Another Castle
 
+To skip right away to seeing the computer play, [click here.](#the-numerical-model)
+
 ## Table of Contents
 
 1. [Overview](#overview)
