@@ -10,11 +10,11 @@ To skip right away to seeing the computer play, [click here.](#the-numerical-mod
 4. [Environment Setup](#environment-setup)
 5. [PPO](#ppo)
 6. [Image vs. Numerical Models](#image-vs.-numerical-models)
-    - [The Numerical Model](#the-numerical-model)
-    - [The Image Model](#the-image-model)
-7. [Conclusion](#conclusion)
-8. [What's Next?](#what's-next?)
-9. [Photo and Code Credits](#photo-and-code-credits)
+7. [The Numerical Model](#the-numerical-model)
+8. [The Image Model](#the-image-model)
+9. [Conclusion](#conclusion)
+10. [What's Next?](#what's-next?)
+11. [Photo and Code Credits](#photo-and-code-credits)
 
 ## **Overview**
 
