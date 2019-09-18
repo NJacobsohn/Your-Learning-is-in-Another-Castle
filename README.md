@@ -108,5 +108,5 @@ Currently the only model that is up and running is the numerical model, so I don
 
 
 
-[nn_episode0]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode0.gif
-[nn_episode50]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode50.gif
+[nn_episode0]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode00.gif
+[nn_episode50]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/nn_episode050.gif
