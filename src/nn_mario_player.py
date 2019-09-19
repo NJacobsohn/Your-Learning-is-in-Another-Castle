@@ -46,16 +46,8 @@ class NNPlayer(AlgorithmBase):
         self.EPOCHS = 10            # Number of Epochs to optimize on between episodes
         self.ACTIVATION = "tanh"    # Activation function to use in the actor/critic networks
 
-        self.GAMMA = 0.99           # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
-        self.BUFFER_SIZE = 4096     # Number of actions to use in an analysis (I think)
-        """
-                                    The following is my train of thought as I'm working through understanding PPO and whatnot
-                                    For buffer size, I think a larger number is better for training. I'm interpreting this as the number
-                                    of actions the actor network will generate for the critic network to attempt to evaluate the reward of.
-                                    Thus, the more actions it can accurately predict on, the more suited the network is for quickly learning
-                                    new levels or challenges. The argument for a smaller buffer size is it could teach the network certain
-                                    quick, easy, repeatable actions that are universally applicable to levels.
-        """
+        self.GAMMA = 0.01           # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
+        self.BUFFER_SIZE = 4096     # Number of actions to use in an analysis
         self.BATCH_SIZE = 64        # Batch size when fitting network. Smaller batch size = more weight updates.
                                     # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
         self.NUM_ACTIONS = 17       # Total number of actions in the action space

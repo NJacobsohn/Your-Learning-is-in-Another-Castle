@@ -1,6 +1,7 @@
 import os
 import retro
 from action_discretizer import MarioDiscretizer
+from baselines.common.retro_wrappers import AllowBacktracking
 
 class AlgorithmBase(object):
     """
@@ -43,6 +44,8 @@ class AlgorithmBase(object):
             record=self.record_path)
 
         env = MarioDiscretizer(env) #wraps env to only allow hand chosen inputs and input combos
+
+        env = AllowBacktracking(env) #allows network to backtrack if stuck, this is a preliminary test
 
         return env
 

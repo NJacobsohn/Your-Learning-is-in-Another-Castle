@@ -1,9 +1,4 @@
 """
-This is presently the exact same code as the regular NN player, it's currently being
-refcatored to work with image data + a CNN rather than numerical data + regular NN
-"""
-
-"""
 Some nice features that should be added to this (or maybe even a custom object should be made):
 
     Auto-create directory within the project directory that saves the model and weights
@@ -64,16 +59,8 @@ class CNNPlayer(AlgorithmBase):
         self.EPOCHS = 10                # Number of Epochs to optimize on between episodes
         self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
 
-        self.GAMMA = 0.99               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
-        self.BUFFER_SIZE = 1024         # Number of actions to use in an analysis (I think)
-        """
-                                    The following is my train of thought as I'm working through understanding PPO and whatnot
-                                    For buffer size, I think a larger number is better for training. I'm interpreting this as the number
-                                    of actions the actor network will generate for the critic network to attempt to evaluate the reward of.
-                                    Thus, the more actions it can accurately predict on, the more suited the network is for quickly learning
-                                    new levels or challenges. The argument for a smaller buffer size is it could teach the network certain
-                                    quick, easy, repeatable actions that are universally applicable to levels.
-        """
+        self.GAMMA = 0.01               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
+        self.BUFFER_SIZE = 1024         # Number of actions to use in an analysis
         self.BATCH_SIZE = 64            # Batch size when fitting network. Smaller batch size = more weight updates.
                                         # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
         self.NUM_ACTIONS = 17           # Total number of actions in the action space
@@ -106,13 +93,6 @@ class CNNPlayer(AlgorithmBase):
         return loss
 
     def build_actor(self):
-        """
-        This method is being changed to use a CNN instead of NN.
-
-        The state input should change from 141312, (NN) to 224, 256, 3 (CNN w/ color images) OR 224, 256, 1 (CNN w/ greyscale)
-        
-        The input is 172032 numbers with RGB, and 57344 numbers with greyscale
-        """
         state_input = Input(shape=self.NUM_STATE, name="actor_state_input") # Input size is the (256, 224, 3)
         advantage = Input(shape=(1,), name="actor_advantage") # Advantage is the critic predicted rewards subtracted from the actual rewards
         old_prediction = Input(shape=(self.NUM_ACTIONS,), name="actor_previous_prediction") # Previous action predictions (probabilities)
@@ -139,13 +119,6 @@ class CNNPlayer(AlgorithmBase):
         return model
 
     def build_critic(self):
-        """
-        This method is being changed to use a CNN instead of NN.
-
-        The state input should change from 141312, (NN) to 224, 256, 3 (CNN w/ color images) OR 224, 256, 1 (CNN w/ greyscale)
-
-        The input is 172032 numbers with RGB, and 57344 numbers with greyscale
-        """
         state_input = Input(shape=self.NUM_STATE) # Input size is the len(observation_space)
 
         x = Conv2D(filters=self.NUM_FILTERS, kernel_size=(3, 3), padding="valid", activation="relu", name="critic_conv1_relu")(state_input)
@@ -176,7 +149,6 @@ class CNNPlayer(AlgorithmBase):
         self.reward = []
 
     def get_action(self): 
-
         p = self.actor.predict([
             self.observation.reshape(1, self.NUM_STATE[0], self.NUM_STATE[1], self.NUM_STATE[2]), 
             self.DUMMY_VALUE, 
