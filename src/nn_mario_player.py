@@ -9,7 +9,7 @@ from keras.optimizers import Adam, SGD #SGD isn't implemented yet but I would lo
 
 from algorithm_object_base import AlgorithmBase
 from action_discretizer import MarioDiscretizer
-from baselines.common.retro_wrappers import StochasticFrameSkip
+from baselines.common.retro_wrappers import StochasticFrameSkip, AllowBacktracking
 
 class NNPlayer(AlgorithmBase):
     """
@@ -34,7 +34,7 @@ class NNPlayer(AlgorithmBase):
         
         self.episode = 0                # Current episode
         self.observation = self.env.reset()
-        self.FORCE_MAX_REWARD = False                # Boolean denoting if rewards should be maximized based on predictions
+        self.FORCE_MAX_REWARD = False   # Boolean denoting if rewards should be maximized based on predictions
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
