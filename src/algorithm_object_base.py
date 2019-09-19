@@ -32,7 +32,7 @@ class AlgorithmBase(object):
 
     def make_env(self):
         """
-        Creates Brute specific environment
+        Creates generic environment for specific wrapping
         """
         env = retro.make(
             game=self.game,
