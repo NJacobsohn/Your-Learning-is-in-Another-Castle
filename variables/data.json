@@ -39,6 +39,10 @@
     "screen_positiony": {
       "address": 8257664,
       "type": "<u2"
+    },
+    "level_time_counter": {
+      "address": 8261424,
+      "type": "|i1"
     }
   }
 }
