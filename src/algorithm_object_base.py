@@ -45,8 +45,6 @@ class AlgorithmBase(object):
 
         env = MarioDiscretizer(env) #wraps env to only allow hand chosen inputs and input combos
 
-        env = AllowBacktracking(env) #allows network to backtrack if stuck, this is a preliminary test
-
         return env
 
     def run(self):

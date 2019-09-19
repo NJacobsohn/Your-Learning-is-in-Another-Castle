@@ -64,6 +64,11 @@
         "op": "equal",
         "reference": 0,
         "penalty": 0.1
+      },
+      "button_pressed": {
+        "op": "equal",
+        "reference": 255,
+        "penalty": 0.1
       }
     }
   }

@@ -43,6 +43,10 @@
     "level_time_counter": {
       "address": 8261424,
       "type": "|i1"
+    },
+    "button_pressed": {
+      "address": 8257558,
+      "type": "|i1"
     }
   }
 }

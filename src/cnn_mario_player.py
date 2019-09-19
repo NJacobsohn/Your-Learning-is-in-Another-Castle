@@ -37,12 +37,14 @@ class CNNPlayer(AlgorithmBase):
 
         self.observation_type = retro.Observations(0)  # Must be 0 for image observation
 
+        self.IS_COLOR = True
+
         self.env = self.make_env()
         self.env = StochasticFrameSkip(self.env, n=4, stickprob=0.5) # Wraps env to randomly (stickprob) skip frames (n), cutting down on training time
 
         #The following wrappers are here to cut down on training time even further, if desired
         #self.env = Downsample(self.env, ratio=2) # Divides each side of image by 2, thus cutting down total pixels by 4x
-        #self.env = Rgb2gray(self.env) # Changes from color to greyscale
+        self.env, self.IS_COLOR = Rgb2gray(self.env), False
 
         
         self.episode = 0                # Current episode
@@ -59,12 +61,15 @@ class CNNPlayer(AlgorithmBase):
         self.EPOCHS = 10                # Number of Epochs to optimize on between episodes
         self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
 
-        self.GAMMA = 0.01               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
+        self.GAMMA = 0.85               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
         self.BUFFER_SIZE = 1024         # Number of actions to use in an analysis
         self.BATCH_SIZE = 64            # Batch size when fitting network. Smaller batch size = more weight updates.
                                         # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
         self.NUM_ACTIONS = 17           # Total number of actions in the action space
-        self.NUM_STATE = (224, 256, 3)  # Image size for input, 256 and 224 might need to be swapped
+        if self.IS_COLOR:
+            self.NUM_STATE = (224, 256, 3)  # Image size for input
+        else:
+            self.NUM_STATE = (224, 256, 1)
         self.NUM_FILTERS = 4            # Preliminary number of filters for the layers in agent/critic networks
         self.HIDDEN_SIZE = 8            # Number of neurons in actor/critic network final dense layers
         self.NUM_LAYERS = 1             # Number of convolutional layers in the agent and critic networks
@@ -100,7 +105,7 @@ class CNNPlayer(AlgorithmBase):
         x = Conv2D(filters=self.NUM_FILTERS, kernel_size=(3, 3), padding="valid", activation="relu", name="actor_conv1_relu")(state_input)
 
         for i in range(self.NUM_LAYERS - 1): # Add convolutional layers
-            x = Conv2D(filters=self.NUM_FILTERS * (i+1), kernel_size=(3, 3), padding="same", activation="relu", name="actor_conv{0}_relu".format(i+2))(x)
+            x = Conv2D(filters=self.NUM_FILTERS * (i+2), kernel_size=(3, 3), padding="same", activation="relu", name="actor_conv{0}_relu".format(i+2))(x)
         
         x = Flatten()(x)
 
