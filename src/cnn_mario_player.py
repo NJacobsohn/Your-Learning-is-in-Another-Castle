@@ -43,13 +43,13 @@ class CNNPlayer(AlgorithmBase):
         self.env = StochasticFrameSkip(self.env, n=4, stickprob=0.5) # Wraps env to randomly (stickprob) skip frames (n), cutting down on training time
 
         #The following wrappers are here to cut down on training time even further, if desired
-        #self.env = Downsample(self.env, ratio=2) # Divides each side of image by 2, thus cutting down total pixels by 4x
-        self.env, self.IS_COLOR = Rgb2gray(self.env), False
+        self.env = Downsample(self.env, ratio=2) # Divides each side of image by 2, thus cutting down total pixels by 4x
+        #self.env, self.IS_COLOR = Rgb2gray(self.env), False
 
         
         self.episode = 0                # Current episode
         self.observation = self.env.reset()
-        self.FORCE_MAX_REWARD = False   # Boolean denoting if rewards should be maximized based on predictions (I think I'm going to remove this honestly)
+        
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
@@ -62,17 +62,17 @@ class CNNPlayer(AlgorithmBase):
         self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
 
         self.GAMMA = 0.85               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
-        self.BUFFER_SIZE = 1024         # Number of actions to use in an analysis
-        self.BATCH_SIZE = 64            # Batch size when fitting network. Smaller batch size = more weight updates.
+        self.BUFFER_SIZE = 64         # Number of actions to use in an analysis
+        self.BATCH_SIZE = 8            # Batch size when fitting network. Smaller batch size = more weight updates.
                                         # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
         self.NUM_ACTIONS = 17           # Total number of actions in the action space
         if self.IS_COLOR:
-            self.NUM_STATE = (224, 256, 3)  # Image size for input
+            self.NUM_STATE = (112, 128, 3)  # Image size for input
         else:
             self.NUM_STATE = (224, 256, 1)
-        self.NUM_FILTERS = 4            # Preliminary number of filters for the layers in agent/critic networks
+        self.NUM_FILTERS = 8            # Preliminary number of filters for the layers in agent/critic networks
         self.HIDDEN_SIZE = 8            # Number of neurons in actor/critic network final dense layers
-        self.NUM_LAYERS = 1             # Number of convolutional layers in the agent and critic networks
+        self.NUM_LAYERS = 2             # Number of convolutional layers in the agent and critic networks
         self.ENTROPY_LOSS = 1e-3        # Variable in loss function, helps loss scale properly (I think)
         self.LEARNING_RATE = 1e-4       # Lower lr stabilises training greatly
 
@@ -129,7 +129,7 @@ class CNNPlayer(AlgorithmBase):
         x = Conv2D(filters=self.NUM_FILTERS, kernel_size=(3, 3), padding="valid", activation="relu", name="critic_conv1_relu")(state_input)
 
         for i in range(self.NUM_LAYERS - 1): # Add convolutional layers
-            x = Conv2D(filters=self.NUM_FILTERS * (i+1), kernel_size=(3, 3), padding="same", activation="relu", name="critic_conv{0}_relu".format(i+2))(x)
+            x = Conv2D(filters=self.NUM_FILTERS * (i+2), kernel_size=(3, 3), padding="same", activation="relu", name="critic_conv{0}_relu".format(i+2))(x)
 
         x = Flatten()(x)
 
@@ -145,10 +145,7 @@ class CNNPlayer(AlgorithmBase):
     def reset_env(self):
         self.episode += 1
         print("Starting Episode {}\n".format(self.episode))
-        if self.episode % 100 == 0:
-            self.FORCE_MAX_REWARD = True 
-        else:
-            self.FORCE_MAX_REWARD = False
+        
         self.observation = self.env.reset()
         self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # Saves total rewards for future printing
         self.reward = []
@@ -159,10 +156,8 @@ class CNNPlayer(AlgorithmBase):
             self.DUMMY_VALUE, 
             self.DUMMY_ACTION]) # Shapes inputs to make action prediction
 
-        if self.FORCE_MAX_REWARD:
-            action = np.argmax(p[0]) # Every 100 episodes, choose the highest prob action for success
-        else:
-            action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0])) # General case is randomly choosing an action with weighted probs based on prediction
+        
+        action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0])) # General case is randomly choosing an action with weighted probs based on prediction
         action_matrix = np.zeros(self.NUM_ACTIONS) # Creates array of zeros with len(action_space)
         action_matrix[action] = 1 # Sets the chosen action to a 1 to be interpretble by retro gym
         return action, action_matrix, p
@@ -200,16 +195,15 @@ class CNNPlayer(AlgorithmBase):
 
             if done:    # Level was either completed or Mario died
                 self.transform_reward()     # Scale rewards
-                if not self.FORCE_MAX_REWARD:                        # Do this for all episodes EXCEPT episodes divisible by 100
-                    for i in range(len(tmp_batch[0])):  # For each observation
-                        obs, action, pred = tmp_batch[0][i], tmp_batch[1][i], tmp_batch[2][i]
-                                                        # Grabs observations, action matrices, and action probability predictions
-                        r = self.reward[i]
-                                                        # Grabs rewards for aforementioned actions
-                        batch[0].append(obs)
-                        batch[1].append(action)
-                        batch[2].append(pred)
-                        batch[3].append(r)
+                for i in range(len(tmp_batch[0])):  # For each observation
+                    obs, action, pred = tmp_batch[0][i], tmp_batch[1][i], tmp_batch[2][i]
+                                                    # Grabs observations, action matrices, and action probability predictions
+                    r = self.reward[i]
+                                                    # Grabs rewards for aforementioned actions
+                    batch[0].append(obs)
+                    batch[1].append(action)
+                    batch[2].append(pred)
+                    batch[3].append(r)
                 tmp_batch = [[], [], []]    # Clears tmp_batch for next episode
                 self.reset_env()            # Gets env setup for another go
 

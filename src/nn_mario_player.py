@@ -34,7 +34,6 @@ class NNPlayer(AlgorithmBase):
         
         self.episode = 0                # Current episode
         self.observation = self.env.reset()
-        self.FORCE_MAX_REWARD = False   # Boolean denoting if rewards should be maximized based on predictions
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
@@ -85,7 +84,7 @@ class NNPlayer(AlgorithmBase):
 
         x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input) # Add dense layer with input of correct size
         for i in range(self.NUM_LAYERS - 1): # Iterate to add network layers
-            x = Dense(self.HIDDEN_SIZE * (i+1) , activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
+            x = Dense(self.HIDDEN_SIZE * (i+2) , activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
 
         out_actions = Dense(self.NUM_ACTIONS, activation='softmax', name='output')(x)
         # Output later to pick an action from the action space
@@ -104,7 +103,7 @@ class NNPlayer(AlgorithmBase):
         state_input = Input(shape=(self.NUM_STATE,)) # Input size is the len(observation_space)
         x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input) # Add dense layer with input of correct size
         for i in range(self.NUM_LAYERS - 1): # Iterate to add network layers
-            x = Dense(self.HIDDEN_SIZE * (i+1), activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
+            x = Dense(self.HIDDEN_SIZE * (i+2), activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
 
         out_value = Dense(1)(x) # Predict reward
 
@@ -116,10 +115,6 @@ class NNPlayer(AlgorithmBase):
     def reset_env(self):
         self.episode += 1
         print("Starting Episode {}\n".format(self.episode))
-        if self.episode % 100 == 0:
-            self.FORCE_MAX_REWARD = True 
-        else:
-            self.FORCE_MAX_REWARD = False
         self.observation = self.env.reset()
         self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # saves total reward for future printing
         self.reward = []
@@ -127,10 +122,8 @@ class NNPlayer(AlgorithmBase):
 
     def get_action(self):
         p = self.actor.predict([self.observation.reshape(1, self.NUM_STATE), self.DUMMY_VALUE, self.DUMMY_ACTION]) # Shapes inputs to make action prediction
-        if self.FORCE_MAX_REWARD:
-            action = np.argmax(p[0]) # Every 100 episodes, choose the highest prob action for success
-        else:
-            action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0])) # General case is randomly choosing an action with weighted probs based on prediction
+        
+        action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0])) # General case is randomly choosing an action with weighted probs based on prediction
         action_matrix = np.zeros(self.NUM_ACTIONS) # Creates array of zeros with len(action_space)
         action_matrix[action] = 1 # Sets the chosen action to a 1 to be interpretble by retro gym
         return action, action_matrix, p
@@ -168,16 +161,15 @@ class NNPlayer(AlgorithmBase):
 
             if done:    # Level was either completed or Mario died
                 self.transform_reward()     # Scale rewards
-                if not self.FORCE_MAX_REWARD:                        # Do this for all episodes EXCEPT episodes divisible by 100
-                    for i in range(len(tmp_batch[0])):  # For each observation
-                        obs, action, pred = tmp_batch[0][i], tmp_batch[1][i], tmp_batch[2][i]
-                                                        # Grabs observations, action matrices, and action probability predictions
-                        r = self.reward[i]
-                                                        # Grabs rewards for aforementioned actions
-                        batch[0].append(obs)
-                        batch[1].append(action)
-                        batch[2].append(pred)
-                        batch[3].append(r)
+                for i in range(len(tmp_batch[0])):  # For each observation
+                    obs, action, pred = tmp_batch[0][i], tmp_batch[1][i], tmp_batch[2][i]
+                                                    # Grabs observations, action matrices, and action probability predictions
+                    r = self.reward[i]
+                                                    # Grabs rewards for aforementioned actions
+                    batch[0].append(obs)
+                    batch[1].append(action)
+                    batch[2].append(pred)
+                    batch[3].append(r)
                 tmp_batch = [[], [], []]    # Clears tmp_batch for next episode
                 self.reset_env()            # Gets env setup for another go
 
