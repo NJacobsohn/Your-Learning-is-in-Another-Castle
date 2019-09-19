@@ -11,13 +11,6 @@ from algorithm_object_base import AlgorithmBase
 from action_discretizer import MarioDiscretizer
 from baselines.common.retro_wrappers import StochasticFrameSkip
 
-"""
-    Below this is a version of tensorboard that exists for non-tf libraries like pytorch.
-    I'm not sure why it was used here as opposed to regular tensorboard as it works with keras.
-    I'm keeping it as is until I want some training visualizations, then I'm porting it over to regular tensorboard
-"""
-from tensorboardX import SummaryWriter 
-
 class NNPlayer(AlgorithmBase):
     """
     This is a player that learns how to play mario based on the values in the game
@@ -44,7 +37,7 @@ class NNPlayer(AlgorithmBase):
         self.FORCE_MAX_REWARD = False                # Boolean denoting if rewards should be maximized based on predictions
         self.reward = []
         self.reward_over_time = {}
-        self.writer = SummaryWriter(self.record_path)
+        self.actor_critic_losses = [{}, {}]
         self.gradient_steps = 0
 
         self.MAX_EPISODES = 10     # Number of episodes to train over
@@ -154,10 +147,6 @@ class NNPlayer(AlgorithmBase):
                     # p is the probability of each action being the action to maximize the reward at current timestep
 
     def transform_reward(self):
-        if self.FORCE_MAX_REWARD is True:
-            self.writer.add_scalar('Forced Max Episode Reward', np.array(self.reward).sum(), self.episode)
-        else:
-            self.writer.add_scalar('Episode Reward', np.array(self.reward).sum(), self.episode)
         for j in range(len(self.reward) - 2, -1, -1):
             self.reward[j] += self.reward[j + 1] * self.GAMMA
 
@@ -219,8 +208,8 @@ class NNPlayer(AlgorithmBase):
             advantage = reward - pred_values
             actor_loss = self.actor.fit([obs, advantage, old_prediction], [action], batch_size=self.BATCH_SIZE, shuffle=True, epochs=self.EPOCHS, verbose=1)
             critic_loss = self.critic.fit([obs], [reward], batch_size=self.BATCH_SIZE, shuffle=True, epochs=self.EPOCHS, verbose=1)
-            self.writer.add_scalar('Actor Loss', actor_loss.history['loss'][-1], self.gradient_steps)
-            self.writer.add_scalar('Critic Loss', critic_loss.history['loss'][-1], self.gradient_steps)
+            self.actor_critic_losses[0][self.episode] = actor_loss
+            self.actor_critic_losses[1][self.episode] = critic_loss
 
             self.gradient_steps += 1
         for episode_num, total_reward in self.reward_over_time.items():
