@@ -111,7 +111,7 @@ Both network types were trained with relatively small parameters and architectur
 - View how model(s) performance changes from level to level
 - Train a "master" model of each type on various levels in hopes of creating a TAS machine
 
-## **Photo and Code Credits**
+## **Research and Code Credits**
 
 - [PPO Paper](https://arxiv.org/abs/1707.06347)
 - [OpenAI PPO Blog Post](https://openai.com/blog/openai-baselines-ppo/)
