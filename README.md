@@ -101,7 +101,7 @@ Episode 0                  |  Episode 2                | Episode 88             
 
 After initial testing it would appear the CNN has a much higher potential than the NN. The CNN not only is moving with the level right out of the gate, but also did pretty well consistently. The NN felt almost like a random action type algorithm where when it finds a sequence that works, it'll try similar things to it. That's good on a level by level basis but not good for overall skill.
 
-Both network types wer trained with relatively small parameters and architecture, so I hope to retrain both of them with larger set and save the models to do more work locally on them.
+Both network types were trained with relatively small parameters and architecture, so I hope to retrain both of them with larger set and save the models to do more work locally on them.
 
 ## **What's Next?**
 
