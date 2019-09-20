@@ -3,9 +3,8 @@ import numpy as np
 
 from keras import backend as K
 from keras.models import Model
+from keras.optimizers import Adam
 from keras.layers import Input, Dense
-from keras.optimizers import Adam, SGD #SGD isn't implemented yet but I would love to try it
-
 
 from algorithm_object_base import AlgorithmBase
 from action_discretizer import MarioDiscretizer
@@ -28,161 +27,160 @@ class NNPlayer(AlgorithmBase):
         super().__init__(*args, **kwargs)
 
         self.observation_type = retro.Observations(1)  # Must be 1 for numerical observation
-
         self.env = self.make_env()
         self.env = StochasticFrameSkip(self.env, n=4, stickprob=0.5) # Wraps env to randomly (stickprob) skip frames (n), cutting down on training time    
         
-        self.episode = 0                # Current episode
+        self.episode = 0
         self.observation = self.env.reset()
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
         self.gradient_steps = 0
 
-        self.MAX_EPISODES = 10     # Number of episodes to train over
-
+        self.MAX_EPISODES = 10      # Number of episodes to train over
         self.LOSS_CLIPPING = 0.2    # Only implemented clipping for the surrogate loss, paper said it was best
         self.EPOCHS = 10            # Number of Epochs to optimize on between episodes
         self.ACTIVATION = "tanh"    # Activation function to use in the actor/critic networks
-
-        self.GAMMA = 0.01           # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
+        self.GAMMA = 0.85           # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
         self.BUFFER_SIZE = 4096     # Number of actions to use in an analysis
         self.BATCH_SIZE = 64        # Batch size when fitting network. Smaller batch size = more weight updates.
                                     # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
         self.NUM_ACTIONS = 17       # Total number of actions in the action space
-        self.NUM_STATE = 141312     # Total number of inputs from the environment (i.e. the observation space) This value is numerical observations
-        self.HIDDEN_SIZE = 24       # Number of neurons in actor/critic network layers (6144 is a factor of 141312)
-        self.NUM_LAYERS = 1         # Number of layers in the agent and critic networks
-        self.ENTROPY_LOSS = 1e-3    # Variable in loss function, helps loss scale properly (I think)
+        self.NUM_STATE = 141312     # Total number of inputs from the environment (i.e. the observation space)
+        self.HIDDEN_SIZE = 24       # Number of neurons in actor/critic network layers
+        self.NUM_LAYERS = 1         # Number of layers in the actor and critic networks
+        self.ENTROPY_LOSS = 1e-3    # Variable in loss function, helps loss scale properly
         self.LEARNING_RATE = 1e-4   # Lower lr stabilises training greatly
 
-        self.DUMMY_ACTION = np.zeros((1, self.NUM_ACTIONS)) # Creates array with shape (1, len(action_space))
-        self.DUMMY_VALUE = np.zeros((1, 1))                 # Creates array with shape (1, 1)
-                                                            # These are used as action/prediction placeholders 
+        # These are used as action/prediction placeholders 
+        self.DUMMY_ACTION = np.zeros((1, self.NUM_ACTIONS)) 
+        self.DUMMY_VALUE = np.zeros((1, 1))                 
 
-        self.critic = self.build_critic()                   # Builds critic model
-        self.actor = self.build_actor()                     # Builds actor model
+        self.critic = self.build_critic()
+        self.actor = self.build_actor()
 
 
-    def proximal_policy_optimization_loss(self, advantage, old_prediction): # Custom loss function
+    def proximal_policy_optimization_loss(self, advantage, old_prediction):
+        """
+        PPO Loss Function for Actor
+        """
         def loss(y_true, y_pred):
             prob = y_true * y_pred 
             old_prob = y_true * old_prediction
             r = prob/(old_prob + 1e-10)
-
             loss_clip = K.clip(r, min_value=1 - self.LOSS_CLIPPING, max_value=1 + self.LOSS_CLIPPING)
-
             inverse_prob = -(prob * K.log(prob + 1e-10))
-            
             return -K.mean(K.minimum(r * advantage, loss_clip * advantage) + self.ENTROPY_LOSS * inverse_prob)
         return loss
 
     def build_actor(self):
-        state_input = Input(shape=(self.NUM_STATE,)) # Input size is the len(observation_space)
+        """
+        Builds Actor Network with optional layers with increasing neurons each layer
+            The actor predicts an action based on the state of the game
+        """
+        state_input = Input(shape=(self.NUM_STATE,))
         advantage = Input(shape=(1,)) # Advantage is the critic predicted rewards subtracted from the actual rewards
         old_prediction = Input(shape=(self.NUM_ACTIONS,)) # Previous action predictions (probabilities)
 
-        x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input) # Add dense layer with input of correct size
-        for i in range(self.NUM_LAYERS - 1): # Iterate to add network layers
-            x = Dense(self.HIDDEN_SIZE * (i+2) , activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
-
+        x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input)
+        for i in range(self.NUM_LAYERS - 1):
+            x = Dense(self.HIDDEN_SIZE * (i+2) , activation=self.ACTIVATION)(x) 
         out_actions = Dense(self.NUM_ACTIONS, activation='softmax', name='output')(x)
-        # Output later to pick an action from the action space
-
         model = Model(inputs=[state_input, advantage, old_prediction], outputs=[out_actions])
         model.compile(optimizer=Adam(lr=self.LEARNING_RATE),
                       loss=[self.proximal_policy_optimization_loss(
                           advantage=advantage,
                           old_prediction=old_prediction)])
         model.summary()
-
         return model
 
     def build_critic(self):
+        """
+        Builds Critic Network with optional layers with increasing neurons each layer 
+            The critic predicts a reward based on the state of the game
+        """
+        state_input = Input(shape=(self.NUM_STATE,))
 
-        state_input = Input(shape=(self.NUM_STATE,)) # Input size is the len(observation_space)
-        x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input) # Add dense layer with input of correct size
-        for i in range(self.NUM_LAYERS - 1): # Iterate to add network layers
-            x = Dense(self.HIDDEN_SIZE * (i+2), activation=self.ACTIVATION)(x) # Output of previous layer is input of new layers
-
-        out_value = Dense(1)(x) # Predict reward
-
+        x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input)
+        for i in range(self.NUM_LAYERS - 1):
+            x = Dense(self.HIDDEN_SIZE * (i+2), activation=self.ACTIVATION)(x)
+        out_value = Dense(1)(x)
         model = Model(inputs=[state_input], outputs=[out_value])
         model.compile(optimizer=Adam(lr=self.LEARNING_RATE), loss='mse')
-
         return model
 
     def reset_env(self):
+        """
+        Resets Environment to prepare for next episode
+        """
         self.episode += 1
         print("Starting Episode {}\n".format(self.episode))
         self.observation = self.env.reset()
         self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # saves total reward for future printing
         self.reward = []
 
-
     def get_action(self):
-        p = self.actor.predict([self.observation.reshape(1, self.NUM_STATE), self.DUMMY_VALUE, self.DUMMY_ACTION]) # Shapes inputs to make action prediction
-        
-        action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0])) # General case is randomly choosing an action with weighted probs based on prediction
-        action_matrix = np.zeros(self.NUM_ACTIONS) # Creates array of zeros with len(action_space)
-        action_matrix[action] = 1 # Sets the chosen action to a 1 to be interpretble by retro gym
-        return action, action_matrix, p
-            # action is the index in the action_space 
-                # action_matrix is the array of 0s with a 1 at the action index
-                    # p is the probability of each action being the action to maximize the reward at current timestep
+        """
+        Looks at current state of the game and predicts an action to make
+        Then formats action to be interpretable by retro-gym
 
+        Returns:
+                action            = index of chosen action in action space
+                action_matrix     = array of 0s with len(action_space) with 1 at action index
+                predicted_action  = array of probabilities with len(action_space), predicted probs for best move
+        """ 
+        p = self.actor.predict([self.observation.reshape(1, self.NUM_STATE), self.DUMMY_VALUE, self.DUMMY_ACTION]) 
+        action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0]))
+        action_matrix = np.zeros(self.NUM_ACTIONS)
+        action_matrix[action] = 1 
+        return action, action_matrix, p
+    
     def transform_reward(self):
+        """
+        Reward Scaling to deal with PPO exploding rewards
+        """
         for j in range(len(self.reward) - 2, -1, -1):
             self.reward[j] += self.reward[j + 1] * self.GAMMA
 
     def get_batch(self):
-        batch = [[], [], [], []] # observations, actions, predicted rewards, and actual rewards
+        """
+        Create batch of observations, actions, and rewards to train the Actor and Critic networks on
 
-        tmp_batch = [[], [], []] # observations, action_matrix, predicted_action
-        while len(batch[0]) < self.BUFFER_SIZE: # This loops generates and runs actions until the done condition is met
-
+        Returns:
+                obs             = array of observations with shape (NUM_STATE, BUFFER_SIZE)
+                action          = array of action matrices with shape (NUM_ACTIONS, BUFFER_SIZE)
+                pred            = array of action probability predictions with shape (NUM_ACTIONS, BUFFER_SIZE)
+                reward          = array of rewards for each observation with shape (BUFFER_SIZE, 1)
+        """
+        batch = [[], [], [], []] 
+        tmp_batch = [[], [], []] 
+        while len(batch[0]) < self.BUFFER_SIZE: 
             action, action_matrix, predicted_action = self.get_action() 
-                # Returns:
-                #     action            = index of chosen action in action space
-                #     action_matrix     = array of 0s with len(action_space) with 1 at action index
-                #     predicted_action  = array of probabilities with len(action_space), predicted probs for best move
-
-            observation, reward, done, _ = self.env.step(action) # Take the generated action
-                # Returns:
-                #     observation       = array of len(observation_space) of current numerical state
-                #     reward            = reward recieved from doing previous action
-                #     done              = boolean if any done conditions are met
-            self.reward.append(reward) # Track reward for action
-
-            tmp_batch[0].append(self.observation)   # This is the observation, numerical/image from the game
-            tmp_batch[1].append(action_matrix)      # Track arrays of chosen actions
-            tmp_batch[2].append(predicted_action)   # Track action probabilities
-            self.observation = observation          # Set current observation to be newest observation
-
+            observation, reward, done, _ = self.env.step(action)
+            self.reward.append(reward)
+            tmp_batch[0].append(self.observation)   
+            tmp_batch[1].append(action_matrix)      
+            tmp_batch[2].append(predicted_action)   
+            self.observation = observation         
             if done:    # Level was either completed or Mario died
-                self.transform_reward()     # Scale rewards
-                for i in range(len(tmp_batch[0])):  # For each observation
+                self.transform_reward()
+                for i in range(len(tmp_batch[0])):
                     obs, action, pred = tmp_batch[0][i], tmp_batch[1][i], tmp_batch[2][i]
-                                                    # Grabs observations, action matrices, and action probability predictions
                     r = self.reward[i]
-                                                    # Grabs rewards for aforementioned actions
                     batch[0].append(obs)
                     batch[1].append(action)
                     batch[2].append(pred)
                     batch[3].append(r)
-                tmp_batch = [[], [], []]    # Clears tmp_batch for next episode
-                self.reset_env()            # Gets env setup for another go
-
+                tmp_batch = [[], [], []]    
+                self.reset_env()
         obs, action, pred, reward = np.array(batch[0]), np.array(batch[1]), np.array(batch[2]), np.reshape(np.array(batch[3]), (len(batch[3]), 1))
-                        # Formats data into arrays for better computation, these things are BIG
         pred = np.reshape(pred, (pred.shape[0], pred.shape[2]))
         return obs, action, pred, reward
-            # obs       = array of observations with shape (len(observation_space), BUFFER_SIZE)
-            # action    = array of action matrices with shape (len(action_space), BUFFER_SIZE)
-            # pred      = array of action probability predictions with shape (len(action_space), BUFFER_SIZE)
-            # reward    = array of rewards for each observation with shape (BUFFER_SIZE, 1)
 
     def run(self):
+        """
+        Actually runs the algorithm. Depending on your buffer size you might get some bonus episodes out of the deal
+        """
         while self.episode < self.MAX_EPISODES :
             obs, action, pred, reward = self.get_batch()
             obs, action, pred, reward = obs[:self.BUFFER_SIZE], action[:self.BUFFER_SIZE], pred[:self.BUFFER_SIZE], reward[:self.BUFFER_SIZE]
@@ -197,8 +195,8 @@ class NNPlayer(AlgorithmBase):
 
             self.gradient_steps += 1
         for episode_num, total_reward in self.reward_over_time.items():
-            if total_reward > 0: #200:
-                print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward)) # This should print good episodes"""
+            if total_reward > 0:
+                print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward))
         # Verbosity Guide:
         # > 100: prints a lot of episodes, even some where the midway point wasn't reached
         # > 200: should print most midpoint crossings (low chance to miss it)

@@ -7,7 +7,6 @@ class AlgorithmBase(object):
     """
     This is the base class for algorithm classes that are callable from the command line.
     """
-
     def __init__(self, project_name, game, scenario, variables, observation_type, record):
         self.project_name = project_name
         self.game = game
@@ -15,12 +14,8 @@ class AlgorithmBase(object):
         self.variables = variables
         self.observation_type = retro.Observations(observation_type) 
         self.record_path = self._fix_record_path(record)
-
         self.isVectorized = False 
-
         self.max_episode_steps = 5000
-
-        
 
     def _fix_record_path(self, record_path):
         """
@@ -44,7 +39,6 @@ class AlgorithmBase(object):
             record=self.record_path)
 
         env = MarioDiscretizer(env) #wraps env to only allow hand chosen inputs and input combos
-
         return env
 
     def run(self):

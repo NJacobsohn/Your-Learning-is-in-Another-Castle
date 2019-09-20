@@ -34,10 +34,8 @@ def create_parser():
                     acktr
                     trpo
                     ddpg
-                """)
-                
+                """)              
     return parser
-
 
 def choose_algorithm(args):
     """
@@ -46,7 +44,6 @@ def choose_algorithm(args):
     It's technically a nested switch statement with the PPO option
     Formatting it like this makes adding more models/algorithms very easy
     """
-
     switch_dict = {
         "brute" : brute_alg,
         "random" : random_alg,
@@ -63,8 +60,7 @@ def choose_algorithm(args):
             Brute
             CNNPPO
             NNPPO
-        """.format(algorithm)) 
-        
+        """.format(algorithm))   
     return func(args)
 
 def brute_alg(args):
