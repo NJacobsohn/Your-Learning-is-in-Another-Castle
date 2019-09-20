@@ -81,33 +81,21 @@ There are pitfalls of each of these approaches, for the numerical analysis, it's
 
 This is what I feel is a silly model. While it was the easiest to setup, it loves to memorize levels rather than actually just being good at Mario. But ultimately you're this far down this readme because you want to see a neural network play Mario. Well this is the correct section for it!
 
-The following gifs are from a 2 layer network, the first layer had 24 neurons and the second layer had 48. It used tanh activation with the Adam optimizer. (This is the layout of both the actor and critic network). Each episode is an attempt at beating the level, so on episode 0 it has no idea what it's doing. As you can see, by episode 50 it started to learn to traverse the level rather than jump around randomly.  
-
-Episode 0                  |  Episode 50
-:-------------------------:|:-------------------------:
-![nn_episode0][nn_episode0]  |  ![nn_episode50][nn_episode50]
-
-Episode 120 here is an example of showing that the model doesn't just get better each time. It still dies at parts that it had beaten before as it's trying new actions/different jump timings, etc.
+The following gifs are from a 2 layer network, the first layer had 24 neurons and the second layer had 48. It used tanh activation with the Adam optimizer. (This is the layout of both the actor and critic network). Each episode is an attempt at beating the level, so on episode 0 it has no idea what it's doing. As you can see, by episode 50 it started to learn to traverse the level rather than jump around randomly. Episode 120 here is an example of showing that the model doesn't just get better each time. It still dies at parts that it had beaten before as it's trying new actions/different jump timings, etc.
 
 But on episode 241, it finally happened. The very first level completion by my own model (might I add, the very first time any iteration of any of my models beat a level)
 
-Episode 120                  |  Episode 241
-:-------------------------:|:-------------------------:
-![nn_episode120][nn_episode120]  |  ![nn_episode241][nn_episode241]
+Episode 0                  |  Episode 50               | Episode 120               |  Episode 241
+:-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:
+![nn_episode0][nn_episode0]  |  ![nn_episode50][nn_episode50]  |  ![nn_episode120][nn_episode120]  |  ![nn_episode241][nn_episode241]
 
 ## **The Image Model**
 
-The image model (so far) has brought some roadblocks into the equation. This thing takes a LONG time to train, even with very small parameters. Below are some gifs of it's attempts on a 100 episode training session. The images of the screen were downsampled to 128x112 and converted from color to greyscale before being given as inputs. That being said, it did suprisingly well given the augmented data. As you can see, even on the first episode we're seeing movement towards the right, and by episode 2 it's already cleared the midway point.
+The image model (so far) has brought some roadblocks into the equation. This thing takes a LONG time to train, even with very small parameters. Below are some gifs of it's attempts on a 100 episode training session. The images of the screen were downsampled to 128x112 and converted from color to greyscale before being given as inputs. That being said, it did suprisingly well given the augmented data. As you can see, even on the first episode we're seeing movement towards the right, and by episode 2 it's already cleared the midway point. Unfortunately, the farthest this model ever made it during its 100 episodes was on episode 88. It never crossed that gap unfortunately, and the immediate next episode went very poorly. This I feel is due to one of two things. Either the models aren't fitting and updating their weights often enough, or they're doing it way too often.
 
-Episode 0                  |  Episode 2
-:-------------------------:|:-------------------------:
-![cnn_episode0][cnn_episode0]  |  ![cnn_episode2][cnn_episode2]
-
-Unfortunately, the farthest this model ever made it during its 100 episodes was on episode 88. It never crossed that gap unfortunately, and the immediate next episode went very poorly. This I feel is due to one of two things. Either the models aren't fitting and updating their weights often enough, or they're doing it way too often. 
-
-Episode 88                  |  Episode 89
-:-------------------------:|:-------------------------:
-![cnn_episode88][cnn_episode88]  |  ![cnn_episode89][cnn_episode89]
+Episode 0                  |  Episode 2                | Episode 88                |  Episode 89
+:-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:
+![cnn_episode0][cnn_episode0]  |  ![cnn_episode2][cnn_episode2]  |  ![cnn_episode88][cnn_episode88]  |  ![cnn_episode89][cnn_episode89]
 
 ## **Conclusion**
 
