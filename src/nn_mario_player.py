@@ -82,10 +82,10 @@ class NNPlayer(AlgorithmBase):
         advantage = Input(shape=(1,)) # Advantage is the critic predicted rewards subtracted from the actual rewards
         old_prediction = Input(shape=(self.NUM_ACTIONS,)) # Previous action predictions (probabilities)
 
-        x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input)
+        x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION, name="actor_dense1_{}".format(self.ACTIVATION))(state_input)
         for i in range(self.NUM_LAYERS - 1):
-            x = Dense(self.HIDDEN_SIZE * (i+2) , activation=self.ACTIVATION)(x) 
-        out_actions = Dense(self.NUM_ACTIONS, activation='softmax', name='output')(x)
+            x = Dense(self.HIDDEN_SIZE * (i+2) , activation=self.ACTIVATION, name="actor_dense{0}_{1}".format(i+2, self.ACTIVATION))(x) 
+        out_actions = Dense(self.NUM_ACTIONS, activation='softmax', name='actor_output')(x)
         model = Model(inputs=[state_input, advantage, old_prediction], outputs=[out_actions])
         model.compile(optimizer=Adam(lr=self.LEARNING_RATE),
                       loss=[self.proximal_policy_optimization_loss(
@@ -101,10 +101,10 @@ class NNPlayer(AlgorithmBase):
         """
         state_input = Input(shape=(self.NUM_STATE,))
 
-        x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION)(state_input)
+        x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION, name="critic_dense1_{}".format(self.ACTIVATION))(state_input)
         for i in range(self.NUM_LAYERS - 1):
-            x = Dense(self.HIDDEN_SIZE * (i+2), activation=self.ACTIVATION)(x)
-        out_value = Dense(1)(x)
+            x = Dense(self.HIDDEN_SIZE * (i+2), activation=self.ACTIVATION, name="critic_dense{0}_{1}".format(i+2, self.ACTIVATION))(x)
+        out_value = Dense(1, name='critic_output')(x)
         model = Model(inputs=[state_input], outputs=[out_value])
         model.compile(optimizer=Adam(lr=self.LEARNING_RATE), loss='mse')
         return model
@@ -194,6 +194,9 @@ class NNPlayer(AlgorithmBase):
             self.actor_critic_losses[1][self.episode] = critic_loss
 
             self.gradient_steps += 1
+        
+        self.actor.save_weights(self.record_path + "actor_weights.hdf5")
+        self.critic.save_weights(self.record_path + "critic_weights.hdf5")
         for episode_num, total_reward in self.reward_over_time.items():
             if total_reward > 0:
                 print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward))

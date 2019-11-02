@@ -1,7 +1,6 @@
 import os
 import retro
 from action_discretizer import MarioDiscretizer
-from baselines.common.retro_wrappers import AllowBacktracking
 
 class AlgorithmBase(object):
     """

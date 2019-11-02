@@ -89,7 +89,7 @@ class CNNPlayer(AlgorithmBase):
         x = Conv2D(filters=self.NUM_FILTERS, kernel_size=(3, 3), padding="valid", activation="relu", name="actor_conv1_relu")(state_input)
         for i in range(self.NUM_LAYERS - 1): 
             x = Conv2D(filters=self.NUM_FILTERS * (i+2), kernel_size=(3, 3), padding="same", activation="relu", name="actor_conv{0}_relu".format(i+2))(x)
-        x = Flatten()(x)
+        x = Flatten(name="actor_flatten")(x)
         x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION, name="actor_dense1_tanh")(x) 
         out_actions = Dense(self.NUM_ACTIONS, activation='softmax', name='actor_output')(x)
         model = Model(inputs=[state_input, advantage, old_prediction], outputs=[out_actions])
@@ -111,7 +111,7 @@ class CNNPlayer(AlgorithmBase):
         for i in range(self.NUM_LAYERS - 1):
             x = Conv2D(filters=self.NUM_FILTERS * (i+2), kernel_size=(3, 3), padding="same", activation="relu", name="critic_conv{0}_relu".format(i+2))(x)
 
-        x = Flatten()(x)
+        x = Flatten(name="critic_flatten")(x)
         x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION, name="critic_dense1_tanh")(x) 
         out_value = Dense(1, name="critic_output")(x) # Predict reward
 
@@ -166,7 +166,7 @@ class CNNPlayer(AlgorithmBase):
                 pred            = array of action probability predictions with shape (NUM_ACTIONS, BUFFER_SIZE)
                 reward          = array of rewards for each observation with shape (BUFFER_SIZE, 1)
         """
-        batch = [[], [], [], []] 
+        batch = [[], [], [], []]
         tmp_batch = [[], [], []] 
         while len(batch[0]) < self.BUFFER_SIZE:
             action, action_matrix, predicted_action = self.get_action() 
@@ -205,6 +205,10 @@ class CNNPlayer(AlgorithmBase):
             critic_loss = self.critic.fit([obs], [reward], batch_size=self.BATCH_SIZE, shuffle=True, epochs=self.EPOCHS, verbose=1)
             self.actor_critic_losses[0][self.episode] = actor_loss
             self.actor_critic_losses[1][self.episode] = critic_loss
+
+        self.actor.save_weights(self.record_path + "actor_weights.hdf5")
+        self.critic.save_weights(self.record_path + "critic_weights.hdf5")
+
         for episode_num, total_reward in self.reward_over_time.items():
             if total_reward > 0:
                 print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward))

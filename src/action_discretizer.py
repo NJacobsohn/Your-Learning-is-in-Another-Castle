@@ -1,7 +1,3 @@
-"""
-Define discrete action spaces for Gym Retro environments with a limited set of button combos
-"""
-
 import gym
 import numpy as np
 import retro
@@ -28,7 +24,6 @@ class Discretizer(gym.ActionWrapper):
 
     def action(self, act):
         return self._decode_discrete_action[act].copy()
-
 
 class MarioDiscretizer(Discretizer):
     """
