@@ -12,26 +12,15 @@ class BrutePlayer(AlgorithmBase):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
+        self.max_episode_steps = 5000
+        self.env = self.make_env()
+        self.env, self.brute_alg = self.make_brute(self.env)
 
-        self.env, self.brute_alg = self.make_env()
-
-
-    def make_env(self):
+    def make_brute(self, env):
         """
         Creates Brute specific environment
         """
-        env = retro.make(
-            game=self.game,
-            info=self.variables, #these are the variables I tracked down as well as their location in memory
-            obs_type=self.observation_type, #0 for CNN image observation, 1 for NN numerical observation
-            state=retro.State.DEFAULT, #this isn't necessary but I'm keeping it for potential future customization
-            scenario=self.scenario,
-            record=self.record_path)
-
-        env = MarioDiscretizer(env) #wraps env to only allow hand chosen inputs and input combos
-
         env = StochasticFrameSkip(env, 4, 0.25) #wraps env to randomly skip frames, cutting down on training time
-
         env = TimeLimit(env, max_episode_steps=self.max_episode_steps) #might remove this wrapper later
         brute_alg = Brute(env, max_episode_steps=self.max_episode_steps)
 

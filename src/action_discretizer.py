@@ -8,7 +8,6 @@ class Discretizer(gym.ActionWrapper):
     Args:
         combos: ordered list of lists of valid button combinations
     """
-
     def __init__(self, env, combos):
         super().__init__(env)
         assert isinstance(env.action_space, gym.spaces.MultiBinary)

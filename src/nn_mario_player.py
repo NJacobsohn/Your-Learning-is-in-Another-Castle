@@ -35,8 +35,6 @@ class NNPlayer(AlgorithmBase):
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
-        self.gradient_steps = 0
-
         self.MAX_EPISODES = 10      # Number of episodes to train over
         self.LOSS_CLIPPING = 0.2    # Only implemented clipping for the surrogate loss, paper said it was best
         self.EPOCHS = 10            # Number of Epochs to optimize on between episodes
@@ -192,8 +190,6 @@ class NNPlayer(AlgorithmBase):
             critic_loss = self.critic.fit([obs], [reward], batch_size=self.BATCH_SIZE, shuffle=True, epochs=self.EPOCHS, verbose=1)
             self.actor_critic_losses[0][self.episode] = actor_loss
             self.actor_critic_losses[1][self.episode] = critic_loss
-
-            self.gradient_steps += 1
         
         self.actor.save_weights(self.record_path + "actor_weights.hdf5")
         self.critic.save_weights(self.record_path + "critic_weights.hdf5")

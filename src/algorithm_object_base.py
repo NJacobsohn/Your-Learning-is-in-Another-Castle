@@ -13,8 +13,6 @@ class AlgorithmBase(object):
         self.variables = variables
         self.observation_type = retro.Observations(observation_type) 
         self.record_path = self._fix_record_path(record)
-        self.isVectorized = False 
-        self.max_episode_steps = 5000
 
     def _fix_record_path(self, record_path):
         """
