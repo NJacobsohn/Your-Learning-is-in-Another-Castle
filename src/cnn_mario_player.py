@@ -7,8 +7,7 @@ from keras.models import Sequential, Model
 from keras.layers import Input, Dense, Flatten, Conv2D
 
 from algorithm_object_base import AlgorithmBase
-from action_discretizer import MarioDiscretizer
-from baselines.common.retro_wrappers import StochasticFrameSkip, Downsample, Rgb2gray, AllowBacktracking
+from baselines.common.retro_wrappers import StochasticFrameSkip, Downsample, Rgb2gray
 
 class CNNPlayer(AlgorithmBase):
     """

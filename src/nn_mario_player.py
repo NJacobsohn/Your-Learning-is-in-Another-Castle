@@ -7,7 +7,6 @@ from keras.optimizers import Adam
 from keras.layers import Input, Dense
 
 from algorithm_object_base import AlgorithmBase
-from action_discretizer import MarioDiscretizer
 from baselines.common.retro_wrappers import StochasticFrameSkip, AllowBacktracking
 
 class NNPlayer(AlgorithmBase):

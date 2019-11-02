@@ -1,6 +1,5 @@
 import retro
 from algorithm_object_base import AlgorithmBase
-from action_discretizer import MarioDiscretizer
 from retro.examples.brute import Brute, TimeLimit
 from baselines.common.retro_wrappers import StochasticFrameSkip
 
