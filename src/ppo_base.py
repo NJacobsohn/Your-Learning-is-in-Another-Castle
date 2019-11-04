@@ -33,18 +33,18 @@ class PPOBase(AlgorithmBase):
         self.MAX_EPISODES = 100         # Number of episodes to train over
         self.LOSS_CLIPPING = 0.2        # Only implemented clipping for the surrogate loss, paper said it was best
         self.EPOCHS = 10                # Number of Epochs to optimize on between episodes
-        self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
+        #self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
         self.GAMMA = 0.85               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
         self.BUFFER_SIZE = 64           # Number of actions to use in an analysis
         self.BATCH_SIZE = 8             # Batch size when fitting network. Smaller batch size = more weight updates.
                                         # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
         self.NUM_STATE = self.env.observation_space.shape
         self.NUM_ACTIONS = self.env.action_space.n           # Total number of actions in the action space
-        self.NUM_FILTERS = 8            # Preliminary number of filters for the layers in agent/critic networks
-        self.HIDDEN_SIZE = 8            # Number of neurons in actor/critic network final dense layers
-        self.NUM_LAYERS = 2             # Number of convolutional layers in the agent and critic networks
+        #self.NUM_FILTERS = 8            # Preliminary number of filters for the layers in agent/critic networks
+        #self.HIDDEN_SIZE = 8            # Number of neurons in actor/critic network final dense layers
+        #self.NUM_LAYERS = 2             # Number of convolutional layers in the agent and critic networks
         self.ENTROPY_LOSS = 1e-3        # Variable in loss function, helps loss scale properly
-        self.LEARNING_RATE = 1e-4       # Lower lr stabilises training greatly
+        #self.LEARNING_RATE = 1e-4       # Lower lr stabilises training greatly
 
         # These are used as action/prediction placeholders 
         self.DUMMY_ACTION = np.zeros((1, self.NUM_ACTIONS))
@@ -53,8 +53,8 @@ class PPOBase(AlgorithmBase):
         self.IS_IMAGE = self.observation_type.value == 0
         
 
-        self.critic = self.build_critic()                   
-        self.actor = self.build_actor() 
+        #self.critic = self.build_critic()                   
+        #self.actor = self.build_actor() 
 
     def proximal_policy_optimization_loss(self, advantage, old_prediction):
         """
@@ -68,7 +68,7 @@ class PPOBase(AlgorithmBase):
             inverse_prob = -(prob * K.log(prob + 1e-10))
             return -K.mean(K.minimum(r * advantage, loss_clip * advantage) + self.ENTROPY_LOSS * inverse_prob)
         return loss
-
+    '''
     def build_actor(self):
         """
         Builds actor network specific for training, define these in classes that inherit this one
@@ -101,7 +101,7 @@ class PPOBase(AlgorithmBase):
         model.compile(optimizer=Adam(lr=self.LEARNING_RATE), loss='mse')
         model.summary()
         return model
-
+    '''
 
     def reset_env(self):
         """
