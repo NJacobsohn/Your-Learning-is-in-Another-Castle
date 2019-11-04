@@ -1,4 +1,4 @@
-import retro
+#import retro
 import numpy as np
 
 from keras import backend as K
@@ -6,10 +6,10 @@ from keras.optimizers import Adam
 from keras.models import Sequential, Model
 from keras.layers import Input, Dense, Flatten, Conv2D
 
-from algorithm_object_base import AlgorithmBase
+from ppo_base import PPOBase
 from baselines.common.retro_wrappers import StochasticFrameSkip, Downsample, Rgb2gray
 
-class CNNPlayer(AlgorithmBase):
+class CNNPlayer(PPOBase):
     """
     This is a player that learns how to play mario based on the current image(s) of the screen
     
@@ -23,47 +23,44 @@ class CNNPlayer(AlgorithmBase):
     def __init__(self, *args, **kwargs):
         
         super().__init__(*args, **kwargs)
-        self.IS_COLOR = True
-        self.observation_type = retro.Observations(0)  # Must be 0 for image observation
-        self.env = self.make_env()
-        self.env = StochasticFrameSkip(self.env, n=4, stickprob=0.5) # Wraps env to randomly (stickprob) skip frames (n), cutting down on training time
+        #self.IS_COLOR = True
+        #self.observation_type = retro.Observations(0)  # Must be 0 for image observation
+        #self.env = self.make_env()
+        #self.env = StochasticFrameSkip(self.env, n=4, stickprob=0.5) # Wraps env to randomly (stickprob) skip frames (n), cutting down on training time
         #The following wrappers are here to cut down on training time even further, if desired
         #self.env = Downsample(self.env, ratio=2) # Divides each side of image by 2, thus cutting down total pixels by 4x
         #self.env, self.IS_COLOR = Rgb2gray(self.env), False
 
-        self.episode = 0
-        self.observation = self.env.reset()
-        self.reward = []
-        self.reward_over_time = {}
-        self.actor_critic_losses = [{}, {}]
+        #self.episode = 0
+        #self.observation = self.env.reset()
+        #self.reward = []
+        #self.reward_over_time = {}
+        #self.actor_critic_losses = [{}, {}]
 
         self.MAX_EPISODES = 100         # Number of episodes to train over
-        self.LOSS_CLIPPING = 0.2        # Only implemented clipping for the surrogate loss, paper said it was best
-        self.EPOCHS = 10                # Number of Epochs to optimize on between episodes
+        #self.LOSS_CLIPPING = 0.2        # Only implemented clipping for the surrogate loss, paper said it was best
+        #self.EPOCHS = 10                # Number of Epochs to optimize on between episodes
         self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
-        self.GAMMA = 0.85               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
-        self.BUFFER_SIZE = 64           # Number of actions to use in an analysis
-        self.BATCH_SIZE = 8             # Batch size when fitting network. Smaller batch size = more weight updates.
+        #self.GAMMA = 0.85               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
+        #self.BUFFER_SIZE = 64           # Number of actions to use in an analysis
+        #self.BATCH_SIZE = 8             # Batch size when fitting network. Smaller batch size = more weight updates.
                                         # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
-        self.NUM_ACTIONS = 17           # Total number of actions in the action space
-        if self.IS_COLOR:
-            self.NUM_STATE = (224, 256, 3)  # Image size for input
-        else:
-            self.NUM_STATE = (224, 256, 1)
+                   # Total number of actions in the action space
+        #self.NUM_STATE = (224, 256, 3)
         self.NUM_FILTERS = 8            # Preliminary number of filters for the layers in agent/critic networks
         self.HIDDEN_SIZE = 8            # Number of neurons in actor/critic network final dense layers
         self.NUM_LAYERS = 2             # Number of convolutional layers in the agent and critic networks
-        self.ENTROPY_LOSS = 1e-3        # Variable in loss function, helps loss scale properly
+        #self.ENTROPY_LOSS = 1e-3        # Variable in loss function, helps loss scale properly
         self.LEARNING_RATE = 1e-4       # Lower lr stabilises training greatly
 
         # These are used as action/prediction placeholders 
-        self.DUMMY_ACTION = np.zeros((1, self.NUM_ACTIONS))
-        self.DUMMY_VALUE = np.zeros((1, 1))                 
+        #self.DUMMY_ACTION = np.zeros((1, self.NUM_ACTIONS))
+        #self.DUMMY_VALUE = np.zeros((1, 1))                 
         
-        self.critic = self.build_critic()                   
-        self.actor = self.build_actor()                     
+        #self.critic = self.build_critic()                   
+        #self.actor = self.build_actor()                     
 
-    def proximal_policy_optimization_loss(self, advantage, old_prediction):
+    '''def proximal_policy_optimization_loss(self, advantage, old_prediction): # out
         """
         PPO Loss Function for Actor
         """
@@ -74,9 +71,9 @@ class CNNPlayer(AlgorithmBase):
             loss_clip = K.clip(r, min_value=1 - self.LOSS_CLIPPING, max_value=1 + self.LOSS_CLIPPING)
             inverse_prob = -(prob * K.log(prob + 1e-10))
             return -K.mean(K.minimum(r * advantage, loss_clip * advantage) + self.ENTROPY_LOSS * inverse_prob)
-        return loss
+        return loss'''
 
-    def build_actor(self):
+    def build_actor(self): # in
         """
         Builds Actor Network with optional layers with increasing filters each layer
             The actor predicts an action based on the state of the game
@@ -99,7 +96,7 @@ class CNNPlayer(AlgorithmBase):
         model.summary()
         return model
 
-    def build_critic(self):
+    def build_critic(self): # in
         """
         Builds Critic Network with optional layers with increasing filters each layer 
             The critic predicts a reward based on the state of the game
@@ -119,7 +116,7 @@ class CNNPlayer(AlgorithmBase):
 
         return model
 
-    def reset_env(self):
+    '''def reset_env(self): # out
         """
         Resets Environment to prepare for next episode
         """
@@ -129,7 +126,7 @@ class CNNPlayer(AlgorithmBase):
         self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # Saves total rewards for future printing
         self.reward = []
 
-    def get_action(self):
+    def get_action(self): # out
         """
         Looks at current state of the game and predicts an action to make
         Then formats action to be interpretable by retro-gym
@@ -148,14 +145,14 @@ class CNNPlayer(AlgorithmBase):
         action_matrix[action] = 1 
         return action, action_matrix, p
 
-    def transform_reward(self):
+    def transform_reward(self): # out
         """
         Reward Scaling to deal with PPO exploding rewards
         """
         for j in range(len(self.reward) - 2, -1, -1):
             self.reward[j] += self.reward[j + 1] * self.GAMMA
 
-    def get_batch(self):
+    def get_batch(self): # out
         """
         Create batch of observations, actions, and rewards to train the Actor and Critic networks on
 
@@ -190,7 +187,7 @@ class CNNPlayer(AlgorithmBase):
         pred = np.reshape(pred, (pred.shape[0], pred.shape[2]))
         return obs, action, pred, reward
 
-    def run(self):
+    def run(self): # out
         """
         Actually runs the algorithm. Depending on your buffer size you might get some bonus episodes out of the deal
         """
@@ -215,3 +212,4 @@ class CNNPlayer(AlgorithmBase):
         # > 100: prints a lot of episodes, even some where the midway point wasn't reached
         # > 200: should print most midpoint crossings (low chance to miss it)
         # > 400: should pretty much only print level completions and outliers (this is nice)
+    '''

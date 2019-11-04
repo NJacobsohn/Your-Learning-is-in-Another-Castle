@@ -70,7 +70,7 @@ def random_alg(args):
     return RandomPlayer(args.project, args.game, args.scenario, args.variables, args.observations, args.record)
 
 def cnn_model(args):
-    return CNNPlayer(args.project, args.game, args.scenario, args.variables, args.observations, args.record)
+    return CNNPlayer(args.project, args.game, args.scenario, args.variables, 0, args.record)
 
 def nn_model(args):
-    return NNPlayer(args.project, args.game, args.scenario, args.variables, args.observations, args.record)
+    return NNPlayer(args.project, args.game, args.scenario, args.variables, 1, args.record)
