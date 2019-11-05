@@ -24,7 +24,7 @@
         "op": "greater-than",
         "measurement": "delta",
         "reference": 0,
-        "reward": 25.0
+        "reward": 10.0
       },
       "coins": {
         "op": "positive",
@@ -68,7 +68,7 @@
       "button_pressed": {
         "op": "equal",
         "reference": 255,
-        "penalty": 0.1
+        "penalty": 0.0
       }
     }
   }
