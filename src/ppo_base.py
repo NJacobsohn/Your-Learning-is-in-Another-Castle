@@ -1,3 +1,4 @@
+import csv
 import retro
 import numpy as np
 from keras import backend as K
@@ -22,12 +23,12 @@ class PPOBase(AlgorithmBase):
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
-        self.MAX_EPISODES = 100         # Number of episodes to train over
+        self.MAX_EPISODES = 10         # Number of episodes to train over
         self.LOSS_CLIPPING = 0.2        # Only implemented clipping for the surrogate loss, paper said it was best
-        self.EPOCHS = 10                # Number of Epochs to optimize on between episodes
-        self.GAMMA = 0.85               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
-        self.BUFFER_SIZE = 64           # Number of actions to use in an analysis
-        self.BATCH_SIZE = 8             # Batch size when fitting network. Smaller batch size = more weight updates.
+        self.EPOCHS = 10                 # Number of Epochs to optimize on between episodes
+        self.GAMMA = 0.99               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
+        self.BUFFER_SIZE = 1024         # Number of actions to fit the model to
+        self.BATCH_SIZE = 32             # Batch size when fitting network. Smaller batch size = more weight updates.
                                         # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
         self.NUM_STATE = self.env.observation_space.shape
         self.NUM_ACTIONS = self.env.action_space.n
@@ -78,7 +79,6 @@ class PPOBase(AlgorithmBase):
                 action_matrix     = array of 0s with len(action_space) with 1 at action index
                 predicted_action  = array of probabilities with len(action_space), predicted probs for best move
         """ 
-        #self.observation = self.observation.reshape((1) + self.NUM_STATE) 
         p = self.actor.predict([
             self.observation.reshape((1,) + self.NUM_STATE), 
             self.DUMMY_VALUE, 
@@ -104,6 +104,8 @@ class PPOBase(AlgorithmBase):
                 action          = array of action matrices with shape (NUM_ACTIONS, BUFFER_SIZE)
                 pred            = array of action probability predictions with shape (NUM_ACTIONS, BUFFER_SIZE)
                 reward          = array of rewards for each observation with shape (BUFFER_SIZE, 1)
+
+        Hi please refactor me omg I suck
         """
         batch = [[], [], [], []]
         tmp_batch = [[], [], []] 
@@ -151,9 +153,13 @@ class PPOBase(AlgorithmBase):
         self.actor.save(self.record_path + "actor_model.hdf5")
         self.critic.save(self.record_path + "critic_model.hdf5")
 
-        for episode_num, total_reward in self.reward_over_time.items():
-            if total_reward > 0:
-                print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward))
+        episode_reward_path = self.record_path + "reward_history.csv"
+        with open(episode_reward_path, 'w') as csv_file:
+            writer = csv.writer(csv_file)
+            for episode_num, total_reward in self.reward_over_time.items():
+                writer.writerow([episode_num, total_reward])
+                if total_reward > 0:
+                    print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward))
         # Verbosity Guide:
         # > 100: prints a lot of episodes, even some where the midway point wasn't reached
         # > 200: should print most midpoint crossings (low chance to miss it)

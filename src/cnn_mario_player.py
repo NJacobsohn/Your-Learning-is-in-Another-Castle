@@ -3,7 +3,7 @@ from keras.optimizers import Adam
 from keras.models import Sequential, Model
 from keras.layers import Input, Dense, Flatten, Conv2D
 
-class CNNPlayer(PPOBase):
+class CNNPlayer(PPOBase): #try making this class a generic class and have the ppo_base import it for cnn/nn?
     """
     This is a player that learns how to play mario based on the current image(s) of the screen
     
@@ -19,6 +19,7 @@ class CNNPlayer(PPOBase):
         self.NUM_FILTERS = 8            # Preliminary number of filters for the layers in agent/critic networks
         self.HIDDEN_SIZE = 8            # Number of neurons in actor/critic network final dense layers
         self.NUM_LAYERS = 2             # Number of convolutional layers in the agent and critic networks
+        # try large filters + strides + valid padding
         self.LEARNING_RATE = 1e-4       # Lower lr stabilises training greatly
 
         self.actor = self.build_actor() 

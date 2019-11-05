@@ -16,6 +16,7 @@ class NNPlayer(PPOBase):
     """
 
     def __init__(self, *args, **kwargs):
+        
         super().__init__(*args, **kwargs)
         self.ACTIVATION = "relu"    # Activation function to use in the actor/critic networks
         self.HIDDEN_SIZE = 24       # Number of neurons in actor/critic network layers

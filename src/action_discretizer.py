@@ -18,7 +18,6 @@ class Discretizer(gym.ActionWrapper):
             for button in combo:
                 arr[buttons.index(button)] = True
             self._decode_discrete_action.append(arr)
-
         self.action_space = gym.spaces.Discrete(len(self._decode_discrete_action))
 
     def action(self, act):
