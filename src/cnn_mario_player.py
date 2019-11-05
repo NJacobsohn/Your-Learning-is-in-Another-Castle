@@ -1,6 +1,4 @@
-import numpy as np
 from ppo_base import PPOBase
-from keras import backend as K
 from keras.optimizers import Adam
 from keras.models import Sequential, Model
 from keras.layers import Input, Dense, Flatten, Conv2D
@@ -16,7 +14,6 @@ class CNNPlayer(PPOBase):
     *** This network ONLY sees the screen to learn/predict at all times, no memory or variable data ***
     """
     def __init__(self, *args, **kwargs):
-        
         super().__init__(*args, **kwargs)
         self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
         self.NUM_FILTERS = 8            # Preliminary number of filters for the layers in agent/critic networks

@@ -1,13 +1,8 @@
 import retro
 import numpy as np
-
 from keras import backend as K
-from keras.optimizers import Adam
-from keras.models import Sequential, Model
-from keras.layers import Input, Dense, Flatten, Conv2D
-
 from algorithm_object_base import AlgorithmBase
-from baselines.common.retro_wrappers import StochasticFrameSkip, Downsample, Rgb2gray
+from baselines.common.retro_wrappers import StochasticFrameSkip
 
 class PPOBase(AlgorithmBase):
     """
@@ -19,42 +14,36 @@ class PPOBase(AlgorithmBase):
     """
 
     def __init__(self, *args, **kwargs):
-        
         super().__init__(*args, **kwargs)
         self.env = self.make_env()
         self.env = StochasticFrameSkip(self.env, n=4, stickprob=0.5) # Wraps env to randomly (stickprob) skip frames (n), cutting down on training time
-
         self.episode = 0
         self.observation = self.env.reset()
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
-
         self.MAX_EPISODES = 100         # Number of episodes to train over
         self.LOSS_CLIPPING = 0.2        # Only implemented clipping for the surrogate loss, paper said it was best
         self.EPOCHS = 10                # Number of Epochs to optimize on between episodes
-        #self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
         self.GAMMA = 0.85               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1% (try 0.01 on this)
         self.BUFFER_SIZE = 64           # Number of actions to use in an analysis
         self.BATCH_SIZE = 8             # Batch size when fitting network. Smaller batch size = more weight updates.
                                         # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
         self.NUM_STATE = self.env.observation_space.shape
-        self.NUM_ACTIONS = self.env.action_space.n           # Total number of actions in the action space
-        #self.NUM_FILTERS = 8            # Preliminary number of filters for the layers in agent/critic networks
-        #self.HIDDEN_SIZE = 8            # Number of neurons in actor/critic network final dense layers
-        #self.NUM_LAYERS = 2             # Number of convolutional layers in the agent and critic networks
+        self.NUM_ACTIONS = self.env.action_space.n
         self.ENTROPY_LOSS = 1e-3        # Variable in loss function, helps loss scale properly
-        #self.LEARNING_RATE = 1e-4       # Lower lr stabilises training greatly
 
         # These are used as action/prediction placeholders 
         self.DUMMY_ACTION = np.zeros((1, self.NUM_ACTIONS))
         self.DUMMY_VALUE = np.zeros((1, 1))                 
-        
         self.IS_IMAGE = self.observation_type.value == 0
-        
 
-        #self.critic = self.build_critic()                   
-        #self.actor = self.build_actor() 
+    def _update_env(self):
+        """
+        Updates NUM_STATE and NUM_ACTIONS parameters in the case of wrappers messing with things after the fact
+        """
+        self.NUM_STATE = self.env.observation_space.shape
+        self.NUM_ACTIONS = self.env.action_space.n
 
     def proximal_policy_optimization_loss(self, advantage, old_prediction):
         """
@@ -68,40 +57,6 @@ class PPOBase(AlgorithmBase):
             inverse_prob = -(prob * K.log(prob + 1e-10))
             return -K.mean(K.minimum(r * advantage, loss_clip * advantage) + self.ENTROPY_LOSS * inverse_prob)
         return loss
-    '''
-    def build_actor(self):
-        """
-        Builds actor network specific for training, define these in classes that inherit this one
-
-        This default model is meant to be very bad and silly, this just exists to test PPO functionality
-        """
-        state_input = Input(shape=(self.NUM_STATE,))
-        advantage = Input(shape=(1,)) # Advantage is the critic predicted rewards subtracted from the actual rewards
-        old_prediction = Input(shape=(self.NUM_ACTIONS,)) # Previous action predictions (probabilities)
-        x = Dense(1, activation=self.ACTIVATION, name="actor_dense1_{}".format(self.ACTIVATION))(state_input)
-        out_actions = Dense(self.NUM_ACTIONS, activation='softmax', name='actor_output')(x)
-        model = Model(inputs=[state_input, advantage, old_prediction], outputs=[out_actions])
-        model.compile(optimizer=Adam(lr=self.LEARNING_RATE),
-                      loss=[self.proximal_policy_optimization_loss(
-                            advantage=advantage,
-                            old_prediction=old_prediction)])
-        model.summary()
-        return model
-
-    def build_critic(self):
-        """
-        Builds critic network specific for training, define these in classes that inherit this one
-
-        This default model is meant to be very bad and silly, this just exists to test PPO functionality
-        """
-        state_input = Input(shape=(self.NUM_STATE,))
-        x = Dense(1, activation=self.ACTIVATION, name="critic_dense1_{}".format(self.ACTIVATION))(state_input)
-        out_value = Dense(1, name='critic_output')(x)
-        model = Model(inputs=[state_input], outputs=[out_value])
-        model.compile(optimizer=Adam(lr=self.LEARNING_RATE), loss='mse')
-        model.summary()
-        return model
-    '''
 
     def reset_env(self):
         """
@@ -122,13 +77,10 @@ class PPOBase(AlgorithmBase):
                 action            = index of chosen action in action space
                 action_matrix     = array of 0s with len(action_space) with 1 at action index
                 predicted_action  = array of probabilities with len(action_space), predicted probs for best move
-        """
-        if self.IS_IMAGE:
-            obs_shape = (1, self.NUM_STATE[0], self.NUM_STATE[1], self.NUM_STATE[2])  
-        else:
-            obs_shape = (1, self.NUM_STATE)
+        """ 
+        #self.observation = self.observation.reshape((1) + self.NUM_STATE) 
         p = self.actor.predict([
-            self.observation.reshape(obs_shape), 
+            self.observation.reshape((1,) + self.NUM_STATE), 
             self.DUMMY_VALUE, 
             self.DUMMY_ACTION])
         action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0]))
@@ -182,6 +134,7 @@ class PPOBase(AlgorithmBase):
         """
         Actually runs the algorithm. Depending on your buffer size you might get some bonus episodes out of the deal
         """
+        self._update_env
         while self.episode < self.MAX_EPISODES :
             obs, action, pred, reward = self.get_batch()
             obs, action, pred, reward = obs[:self.BUFFER_SIZE], action[:self.BUFFER_SIZE], pred[:self.BUFFER_SIZE], reward[:self.BUFFER_SIZE]
