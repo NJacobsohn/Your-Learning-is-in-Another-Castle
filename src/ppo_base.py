@@ -27,7 +27,7 @@ class PPOBase(AlgorithmBase):
         self.actor_critic_losses = [{}, {}]
         self.MAX_EPISODES = 100
         self.LOSS_CLIPPING = 0.2        # Only implemented clipping for the surrogate loss, paper said it was best
-        self.EPOCHS = 4
+        self.EPOCHS = 2
         self.GAMMA = 0.80               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
         self.BUFFER_SIZE = 256          # Number of actions to fit the model to
         self.BATCH_SIZE = 8
@@ -68,12 +68,12 @@ class PPOBase(AlgorithmBase):
         """
         Resets Environment to prepare for next episode
         """
-        self.episode += 1
         print("Starting Episode {}\n".format(self.episode))
         self.observation = self.env.reset()
         self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # Saves total rewards for future printing
         self.reward = []
         self.episode_steps = 0
+        self.episode += 1
 
     def get_action(self):
         """

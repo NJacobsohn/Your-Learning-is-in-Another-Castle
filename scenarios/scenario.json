@@ -29,7 +29,7 @@
       "coins": {
         "op": "positive",
         "measurement": "delta",
-        "reward": 0.0
+        "reward": 0.01
       },
       "midway_point": {
         "op": "equal",
@@ -41,7 +41,7 @@
         "op": "sign",
         "measurement": "delta",
         "reward": 0.1,
-        "penalty": 0.1
+        "penalty": 0.025
       },
       "screen_positiony": {
         "op": "sign",
