@@ -15,7 +15,6 @@ class PPOBase(AlgorithmBase):
     I built my own rather than using someone else's because I couldn't find anyone that not only used retrogym,
     but also had keras model functionality
     """
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.env = self.make_env()
@@ -26,12 +25,12 @@ class PPOBase(AlgorithmBase):
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
-        self.MAX_EPISODES = 10
+        self.MAX_EPISODES = 100
         self.LOSS_CLIPPING = 0.2        # Only implemented clipping for the surrogate loss, paper said it was best
-        self.EPOCHS = 3
+        self.EPOCHS = 4
         self.GAMMA = 0.80               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
-        self.BUFFER_SIZE = 1024         # Number of actions to fit the model to
-        self.BATCH_SIZE = 32
+        self.BUFFER_SIZE = 256          # Number of actions to fit the model to
+        self.BATCH_SIZE = 8
         self.NUM_STATE = self.env.observation_space.shape
         self.NUM_ACTIONS = self.env.action_space.n
         self.ENTROPY_LOSS = 1e-3        # Variable in loss function, helps loss scale properly
@@ -92,8 +91,6 @@ class PPOBase(AlgorithmBase):
             self.DUMMY_ACTION])
         action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0]))
         action_matrix = np.zeros(self.NUM_ACTIONS)
-        if self.episode_steps < 5: # force right action to prevent getting stuck
-            action = 2
         action_matrix[action] = 1 
         return action, action_matrix, p
 

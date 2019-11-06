@@ -13,16 +13,11 @@ class NNPlayer(object):
     
     *** This network does NOT see the screen or learn off of the screen at any time ***
     """
-
     def __init__(self, *args, **kwargs):
-        #super().__init__(*args, **kwargs)
-        self.ACTIVATION = "tanh"    # Activation function to use in the actor/critic networks
-        self.HIDDEN_SIZE = 4       # Number of neurons in actor/critic network layers
-        self.NUM_LAYERS = 1         # Number of layers in the actor and critic networks
+        self.ACTIVATION = "tanh"    # If you choose relu mario only runs left. No idea why. Don't choose relu here
+        self.HIDDEN_SIZE = 24       # Number of neurons in actor/critic network layers
+        self.NUM_LAYERS = 2         # Number of layers in the actor and critic networks
         self.LEARNING_RATE = 1e-4   # Lower lr stabilises training greatly         
-
-        #self.critic = self.build_critic()
-        #self.actor = self.build_actor()
 
     def build_actor(self, NUM_STATE, NUM_ACTIONS, LOSS_FUNC):
         """
