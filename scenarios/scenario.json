@@ -53,7 +53,7 @@
         "op": "positive",
         "measurement": "delta",
         "reward": 0.01,
-        "penalty": 0.0
+        "penalty": 0.01
       },
       "exit_type": {
         "op": "equal",
@@ -63,7 +63,7 @@
       "level_time_counter": {
         "op": "equal",
         "reference": 0,
-        "penalty": 0.0
+        "penalty": 0.05
       },
       "button_pressed": {
         "op": "equal",
