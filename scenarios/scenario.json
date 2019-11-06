@@ -63,7 +63,7 @@
       "level_time_counter": {
         "op": "equal",
         "reference": 0,
-        "penalty": 0.1
+        "penalty": 0.0
       },
       "button_pressed": {
         "op": "equal",

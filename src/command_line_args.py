@@ -1,6 +1,5 @@
 import argparse
-from nn_mario_player import NNPlayer
-from cnn_mario_player import CNNPlayer
+from ppo_base import PPOBase
 from brute_mario_player import BrutePlayer
 from random_mario_player import RandomPlayer
 
@@ -47,8 +46,8 @@ def choose_algorithm(args):
     switch_dict = {
         "brute" : brute_alg,
         "random" : random_alg,
-        "cnnppo" :  cnn_model,
-        "nnppo" : nn_model}
+        "cnnppo" :  cnn_ppo,
+        "nnppo" : nn_ppo}
 
     algorithm = args.algorithm.lower()
 
@@ -69,8 +68,8 @@ def brute_alg(args):
 def random_alg(args):
     return RandomPlayer(args.project, args.game, args.scenario, args.variables, args.observations, args.record)
 
-def cnn_model(args):
-    return CNNPlayer(args.project, args.game, args.scenario, args.variables, 0, args.record)
+def cnn_ppo(args):
+    return PPOBase(args.project, args.game, args.scenario, args.variables, 0, args.record)
 
-def nn_model(args):
-    return NNPlayer(args.project, args.game, args.scenario, args.variables, 1, args.record)
+def nn_ppo(args):
+    return PPOBase(args.project, args.game, args.scenario, args.variables, 1, args.record)

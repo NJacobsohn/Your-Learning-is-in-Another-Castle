@@ -47,3 +47,21 @@ class MarioDiscretizer(Discretizer):
             ['X', 'LEFT', 'A'], #sprint spin jump left
             ['B', 'UP'] #jump into a ceiling pipe (I don't think this is required to beat any levels, but I want to keep things open)
             ])
+
+"""
+BUTTON LIST/INDICES AS INTERPRETED BY THE ENV.STEP() FUNCTION
+
+'B',
+'Y',
+'SELECT',
+'START',
+'UP',
+'DOWN',
+'LEFT',
+'RIGHT',
+'A',
+'X',
+'L',
+'R']
+
+"""

@@ -2,6 +2,8 @@ import csv
 import retro
 import numpy as np
 from keras import backend as K
+from nn_mario_player import NNPlayer
+from cnn_mario_player import CNNPlayer
 from algorithm_object_base import AlgorithmBase
 from baselines.common.retro_wrappers import StochasticFrameSkip
 
@@ -19,25 +21,29 @@ class PPOBase(AlgorithmBase):
         self.env = self.make_env()
         self.env = StochasticFrameSkip(self.env, n=4, stickprob=0.5) # Wraps env to randomly (stickprob) skip frames (n), cutting down on training time
         self.episode = 0
+        self.episode_steps = 0
         self.observation = self.env.reset()
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
-        self.MAX_EPISODES = 10         # Number of episodes to train over
+        self.MAX_EPISODES = 10
         self.LOSS_CLIPPING = 0.2        # Only implemented clipping for the surrogate loss, paper said it was best
-        self.EPOCHS = 10                 # Number of Epochs to optimize on between episodes
-        self.GAMMA = 0.99               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
+        self.EPOCHS = 3
+        self.GAMMA = 0.80               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
         self.BUFFER_SIZE = 1024         # Number of actions to fit the model to
-        self.BATCH_SIZE = 32             # Batch size when fitting network. Smaller batch size = more weight updates.
-                                        # Batch size should be both < BUFFER_SIZE and a factor of BUFFER_SIZE
+        self.BATCH_SIZE = 32
         self.NUM_STATE = self.env.observation_space.shape
         self.NUM_ACTIONS = self.env.action_space.n
         self.ENTROPY_LOSS = 1e-3        # Variable in loss function, helps loss scale properly
-
-        # These are used as action/prediction placeholders 
         self.DUMMY_ACTION = np.zeros((1, self.NUM_ACTIONS))
         self.DUMMY_VALUE = np.zeros((1, 1))                 
         self.IS_IMAGE = self.observation_type.value == 0
+        if self.IS_IMAGE:
+            player = CNNPlayer()
+        else:
+            player = NNPlayer()
+        self.actor = player.build_actor(self.NUM_STATE, self.NUM_ACTIONS, self.proximal_policy_optimization_loss)
+        self.critic = player.build_critic(self.NUM_STATE)
 
     def _update_env(self):
         """
@@ -68,6 +74,7 @@ class PPOBase(AlgorithmBase):
         self.observation = self.env.reset()
         self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # Saves total rewards for future printing
         self.reward = []
+        self.episode_steps = 0
 
     def get_action(self):
         """
@@ -85,6 +92,8 @@ class PPOBase(AlgorithmBase):
             self.DUMMY_ACTION])
         action = np.random.choice(self.NUM_ACTIONS, p=np.nan_to_num(p[0]))
         action_matrix = np.zeros(self.NUM_ACTIONS)
+        if self.episode_steps < 5: # force right action to prevent getting stuck
+            action = 2
         action_matrix[action] = 1 
         return action, action_matrix, p
 
@@ -112,6 +121,7 @@ class PPOBase(AlgorithmBase):
         while len(batch[0]) < self.BUFFER_SIZE:
             action, action_matrix, predicted_action = self.get_action() 
             observation, reward, done, _ = self.env.step(action)
+            self.episode_steps += 1
             self.reward.append(reward) 
             tmp_batch[0].append(self.observation)   
             tmp_batch[1].append(action_matrix)      
@@ -131,6 +141,22 @@ class PPOBase(AlgorithmBase):
         obs, action, pred, reward = np.array(batch[0]), np.array(batch[1]), np.array(batch[2]), np.reshape(np.array(batch[3]), (len(batch[3]), 1))
         pred = np.reshape(pred, (pred.shape[0], pred.shape[2]))
         return obs, action, pred, reward
+    
+    def _write_reward_history(self, verbose=1):
+        episode_reward_path = self.record_path + "reward_history.csv"
+        with open(episode_reward_path, 'w') as csv_file:
+            writer = csv.writer(csv_file)
+            for episode_num, total_reward in self.reward_over_time.items():
+                writer.writerow([episode_num, total_reward])
+                if total_reward >= 0:
+                    print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward))
+
+    def _save_architecture(self, weights=True):
+        self.actor.save(self.record_path + "actor_model.hdf5")
+        self.critic.save(self.record_path + "critic_model.hdf5")
+        if weights:
+            self.actor.save_weights(self.record_path + "actor_weights.hdf5")
+            self.critic.save_weights(self.record_path + "critic_weights.hdf5")
 
     def run(self):
         """
@@ -148,19 +174,5 @@ class PPOBase(AlgorithmBase):
             self.actor_critic_losses[0][self.episode] = actor_loss
             self.actor_critic_losses[1][self.episode] = critic_loss
 
-        self.actor.save_weights(self.record_path + "actor_weights.hdf5")
-        self.critic.save_weights(self.record_path + "critic_weights.hdf5")
-        self.actor.save(self.record_path + "actor_model.hdf5")
-        self.critic.save(self.record_path + "critic_model.hdf5")
-
-        episode_reward_path = self.record_path + "reward_history.csv"
-        with open(episode_reward_path, 'w') as csv_file:
-            writer = csv.writer(csv_file)
-            for episode_num, total_reward in self.reward_over_time.items():
-                writer.writerow([episode_num, total_reward])
-                if total_reward > 0:
-                    print("Episode {0}:\nReward: {1:0.2f}".format(episode_num, total_reward))
-        # Verbosity Guide:
-        # > 100: prints a lot of episodes, even some where the midway point wasn't reached
-        # > 200: should print most midpoint crossings (low chance to miss it)
-        # > 400: should pretty much only print level completions and outliers (this is nice)
+        self._save_architecture()
+        self._write_reward_history()
