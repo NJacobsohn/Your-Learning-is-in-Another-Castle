@@ -20,12 +20,11 @@ class PPOBase(AlgorithmBase):
         self.env = self.make_env()
         self.env = StochasticFrameSkip(self.env, n=4, stickprob=0.5) # Wraps env to randomly (stickprob) skip frames (n), cutting down on training time
         self.episode = 0
-        self.episode_steps = 0
         self.observation = self.env.reset()
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
-        self.MAX_EPISODES = 100
+        self.MAX_EPISODES = 200
         self.LOSS_CLIPPING = 0.2        # Only implemented clipping for the surrogate loss, paper said it was best
         self.EPOCHS = 2
         self.GAMMA = 0.80               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
@@ -72,7 +71,6 @@ class PPOBase(AlgorithmBase):
         self.observation = self.env.reset()
         self.reward_over_time[self.episode] = np.sum(np.array(self.reward)) # Saves total rewards for future printing
         self.reward = []
-        self.episode_steps = 0
         self.episode += 1
 
     def get_action(self):
@@ -118,7 +116,6 @@ class PPOBase(AlgorithmBase):
         while len(batch[0]) < self.BUFFER_SIZE:
             action, action_matrix, predicted_action = self.get_action() 
             observation, reward, done, _ = self.env.step(action)
-            self.episode_steps += 1
             self.reward.append(reward) 
             tmp_batch[0].append(self.observation)   
             tmp_batch[1].append(action_matrix)      
