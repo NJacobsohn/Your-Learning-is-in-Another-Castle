@@ -24,7 +24,7 @@
         "op": "greater-than",
         "measurement": "delta",
         "reference": 0,
-        "reward": 10.0
+        "reward": 5.0
       },
       "coins": {
         "op": "positive",
@@ -35,13 +35,13 @@
         "op": "equal",
         "measurement": "delta",
         "reference": 1,
-        "reward": 100.0
+        "reward": 10.0
       },
       "positionx": {
         "op": "sign",
         "measurement": "delta",
         "reward": 0.1,
-        "penalty": 0.025
+        "penalty": 0.075
       },
       "screen_positiony": {
         "op": "sign",
@@ -53,12 +53,12 @@
         "op": "positive",
         "measurement": "delta",
         "reward": 0.01,
-        "penalty": 0.01
+        "penalty": 0.00
       },
       "exit_type": {
         "op": "equal",
         "reference": 1,
-        "reward": 500.0
+        "reward": 100.0
       },
       "level_time_counter": {
         "op": "equal",
