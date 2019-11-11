@@ -34,11 +34,9 @@ def fix_metadata(level):
 
 def play_level(project_name, level_name, episodes=1, weighted_random=False):
     num_actions = 17
-    DUMMY_ACTION = np.zeros((1, num_actions))
-    DUMMY_VALUE = np.zeros((1, 1))
     fix_metadata(level_name)
-    advantage = Input(shape=(1,), name="actor_advantage") # Advantage is the critic predicted rewards subtracted from the actual rewards
-    old_prediction = Input(shape=(num_actions,), name="actor_previous_prediction") # Previous action predictions (probabilities)
+    advantage = Input(shape=(1,), name="actor_advantage")
+    old_prediction = Input(shape=(num_actions,), name="actor_previous_prediction")
     env = retro.make(
         "SuperMarioWorld-Snes",
         info="variables/data.json",
@@ -52,16 +50,14 @@ def play_level(project_name, level_name, episodes=1, weighted_random=False):
         obs = env.reset()
         action_list = []
         while not done:
-            p = actor.predict(#[
-                obs.reshape((1,) + env.observation_space.shape))#, 
-                #DUMMY_VALUE, 
-                #DUMMY_ACTION])
+            p = actor.predict(
+                obs.reshape((1,) + env.observation_space.shape))
             if weighted_random:
                 action = np.random.choice(num_actions, p=np.nan_to_num(p[0]))
             else:
                 action = np.argmax(p)
             action_list.append(action)
-            obs, reward, done, _ = env.step(action)
+            obs, _, done, _ = env.step(action)
         _ = env.reset()
         for act in action_list:
             env.render(mode="human")
