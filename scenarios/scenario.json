@@ -41,7 +41,7 @@
         "op": "sign",
         "measurement": "delta",
         "reward": 0.1,
-        "penalty": 0.075
+        "penalty": 0.1
       },
       "screen_positiony": {
         "op": "sign",
@@ -63,7 +63,7 @@
       "level_time_counter": {
         "op": "equal",
         "reference": 0,
-        "penalty": 0.05
+        "penalty": 0.0
       },
       "button_pressed": {
         "op": "equal",
