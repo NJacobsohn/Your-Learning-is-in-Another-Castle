@@ -24,10 +24,10 @@ class PPOBase(AlgorithmBase):
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
-        self.MAX_EPISODES = 200
+        self.MAX_EPISODES = 500
         self.EPOCHS = 2                 # 2 epochs seems the best. Actor doesn't benefit much from more, and critic sees the best performance increase on the first two.
         self.GAMMA = 0.80               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
-        self.BUFFER_SIZE = 256          # Number of actions to fit the model to
+        self.BUFFER_SIZE = 128          # Number of actions to fit the model to
         self.BATCH_SIZE = 8
         self.NUM_STATE = self.env.observation_space.shape
         self.NUM_ACTIONS = self.env.action_space.n

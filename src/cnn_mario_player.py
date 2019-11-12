@@ -14,7 +14,7 @@ class CNNPlayer(object):
     """
     def __init__(self):
         self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
-        self.NUM_FILTERS = 16            # Preliminary number of filters for the layers in agent/critic networks
+        self.NUM_FILTERS = 32            # Preliminary number of filters for the layers in agent/critic networks
         self.STRIDE = (2, 2)
         self.KERNEL_SIZE = (5, 5)
         self.HIDDEN_SIZE = 32            # Number of neurons in actor/critic network final dense layer
