@@ -14,6 +14,7 @@ def create_parser():
                 training records/models/weights to it.
                 """)
     parser.add_argument("-g", '--game', default='SuperMarioWorld-Snes', help="This is the name of the game to learn on", type=str)
+    parser.add_argument("-t", "--state", default="YoshisIsland2", help="If specified, pick the name of the state to train on", type=str)
     parser.add_argument("-s", '--scenario', default="scenarios/scenario.json", help="Try out a custom scenario", type=str)
     parser.add_argument("-o", "--observations", default=0, help="Either 0 or 1, 0 for screen observation, 1 for numerical observation", type=int)
     parser.add_argument("-r", "--record", default="learning_movies/", help="Choose a directory to record the training session to", type=str)
@@ -33,14 +34,12 @@ def create_parser():
                     acktr
                     trpo
                     ddpg
-                """)              
+                """, type=str)              
     return parser
 
 def choose_algorithm(args):
     """
     This is a (relatively) pythonic implementation of a switch statement.
-
-    It's technically a nested switch statement with the PPO option
     Formatting it like this makes adding more models/algorithms very easy
     """
     switch_dict = {
@@ -61,15 +60,15 @@ def choose_algorithm(args):
             NNPPO
         """.format(algorithm))   
     return func(args)
-
+#project_name, game, state, scenario, observation_type, record, variables
 def brute_alg(args):
-    return BrutePlayer(args.project, args.game, args.scenario, args.variables, args.observations, args.record)
+    return BrutePlayer(args.project, args.game, args.state, args.scenario, args.observations, args.record, args.variables)
 
 def random_alg(args):
-    return RandomPlayer(args.project, args.game, args.scenario, args.variables, args.observations, args.record)
+    return RandomPlayer(args.project, args.game, args.state, args.scenario, args.observations, args.record, args.variables)
 
 def cnn_ppo(args):
-    return PPOBase(args.project, args.game, args.scenario, args.variables, 0, args.record)
+    return PPOBase(args.project, args.game, args.state, args.scenario, 0, args.record, args.variables)
 
 def nn_ppo(args):
-    return PPOBase(args.project, args.game, args.scenario, args.variables, 1, args.record)
+    return PPOBase(args.project, args.game, args.state, args.scenario, 1, args.record, args.variables)

@@ -1,5 +1,3 @@
-import os
-import json
 import retro
 import argparse
 import numpy as np
@@ -21,20 +19,8 @@ def proximal_policy_optimization_loss(advantage, old_prediction):
         return -K.mean(K.minimum(r * advantage, loss_clip * advantage) + 1e-3 * inverse_prob)
     return loss
 
-def fix_metadata(level):
-    """
-    This function will rewrite the entire metadata file for SuperMarioWorld-Snes located in the gym-retro library files
-    This is a stupid work around for retro gym's lack of custom state functionality. Thanks OpenAI
-    """
-    metadata_filepath = "/anaconda3/lib/python3.7/site-packages/retro/data/stable/SuperMarioWorld-Snes/metadata.json"
-    os.remove(metadata_filepath)
-    content_dict = {"default_state":level} 
-    with open(metadata_filepath, "w") as j_file:
-        json.dump(content_dict, j_file)
-
 def play_level(project_name, level_name, episodes=1, weighted_random=False):
     num_actions = 17
-    fix_metadata(level_name)
     advantage = Input(shape=(1,), name="actor_advantage")
     old_prediction = Input(shape=(num_actions,), name="actor_previous_prediction")
     env = retro.make(
@@ -42,10 +28,11 @@ def play_level(project_name, level_name, episodes=1, weighted_random=False):
         info="variables/data.json",
         scenario="scenarios/scenario.json",
         obs_type=retro.Observations(0))
+    env.load_state(level_name)
     env = MarioDiscretizer(env)
     model_path = "learning_movies/" + project_name + "/"
     actor = load_model(model_path+"actor_model.hdf5", custom_objects={'loss':proximal_policy_optimization_loss(advantage=advantage, old_prediction=old_prediction)})
-    for n in range(episodes):
+    for _ in range(episodes):
         done = False
         obs = env.reset()
         action_list = []

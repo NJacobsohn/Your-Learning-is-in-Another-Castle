@@ -5,7 +5,6 @@ from keras import backend as K
 from nn_mario_player import NNPlayer
 from cnn_mario_player import CNNPlayer
 from algorithm_object_base import AlgorithmBase
-from baselines.common.retro_wrappers import StochasticFrameSkip
 
 class PPOBase(AlgorithmBase):
     """
@@ -18,7 +17,6 @@ class PPOBase(AlgorithmBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.env = self.make_env()
-        self.env = StochasticFrameSkip(self.env, n=4, stickprob=0.5) # Wraps env to randomly (stickprob) skip frames (n), cutting down on training time
         self.episode = 0
         self.observation = self.env.reset()
         self.reward = []
@@ -26,12 +24,11 @@ class PPOBase(AlgorithmBase):
         self.actor_critic_losses = [{}, {}]
         self.MAX_EPISODES = 500
         self.EPOCHS = 2                 # 2 epochs seems the best. Actor doesn't benefit much from more, and critic sees the best performance increase on the first two.
-        self.GAMMA = 0.80               # Used in reward scaling, 0.99 says rewards are scaled DOWN by 1%
-        self.BUFFER_SIZE = 128          # Number of actions to fit the model to
-        self.BATCH_SIZE = 8
+        self.GAMMA = 0.80               # Used for reward scaling
+        self.BUFFER_SIZE = 64           # Number of actions to fit the model to
+        self.BATCH_SIZE = 2
         self.NUM_STATE = self.env.observation_space.shape
         self.NUM_ACTIONS = self.env.action_space.n
- 
         self.LOSS_CLIPPING = 0.2
         self.ENTROPY_LOSS = 1e-3
         self.DUMMY_ACTION = np.zeros((1, self.NUM_ACTIONS))
@@ -122,7 +119,7 @@ class PPOBase(AlgorithmBase):
             tmp_batch[1].append(action_matrix)      
             tmp_batch[2].append(predicted_action) 
             self.observation = observation
-            if done:    # Level was either completed or Mario died
+            if done:
                 self.transform_reward()
                 for i in range(len(tmp_batch[0])):
                     obs, action, pred = tmp_batch[0][i], tmp_batch[1][i], tmp_batch[2][i]
@@ -135,6 +132,12 @@ class PPOBase(AlgorithmBase):
                 self.reset_env()
         obs, action, pred, reward = np.array(batch[0]), np.array(batch[1]), np.array(batch[2]), np.reshape(np.array(batch[3]), (len(batch[3]), 1))
         pred = np.reshape(pred, (pred.shape[0], pred.shape[2]))
+        # These are here just to get some info to prep to refactor this stupid function
+        print("Buffer size: ", self.BUFFER_SIZE)
+        print("obs: ", obs.shape)
+        print("action: ", action.shape)
+        print("pred: ", pred.shape)
+        print("reward: ", reward.shape)
         return obs, action, pred, reward
     
     def _write_reward_history(self, verbose=1):

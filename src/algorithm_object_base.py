@@ -6,9 +6,10 @@ class AlgorithmBase(object):
     """
     This is the base class for algorithm classes that are callable from the command line.
     """
-    def __init__(self, project_name, game, scenario, variables, observation_type, record):
+    def __init__(self, project_name, game, state, scenario, observation_type, record, variables):
         self.project_name = project_name
         self.game = game
+        self.state = state
         self.scenario = scenario
         self.variables = variables
         self.observation_type = retro.Observations(observation_type) 
@@ -30,11 +31,10 @@ class AlgorithmBase(object):
         env = retro.make(
             game=self.game,
             info=self.variables, #these are the variables I tracked down as well as their location in memory
-            obs_type=self.observation_type, #0 for CNN image observation, 1 for NN numerical observation
-            state=retro.State.DEFAULT, #this isn't necessary but I'm keeping it for potential future customization
+            obs_type=self.observation_type, #0 for image observation, 1 for numerical observation
             scenario=self.scenario,
             record=self.record_path)
-
+        env.load_state(self.state)
         env = MarioDiscretizer(env) #wraps env to only allow hand chosen inputs and input combos
         return env
 

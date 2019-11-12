@@ -39,7 +39,7 @@ class CNNPlayer(object):
         x = Conv2D(filters=self.NUM_FILTERS, name="actor_block0_conv0", **self.parameter_dict)(state_input)
         for i in range(self.NUM_BLOCKS - 1): 
             x = Conv2D(filters=self.NUM_FILTERS * (i+2), name="actor_block{0}_conv0".format(i+1), **self.parameter_dict)(x)
-            x = Conv2D(filters=self.NUM_FILTERS * (i+2), name="actor_block{0}_conv1".format(i+1), **self.parameter_dict)(x)
+            x = Conv2D(filters=self.NUM_FILTERS * (i+2), name="actor_block{0}_conv1".format(i+1), padding="same", **self.parameter_dict)(x)
             x = AvgPool2D(pool_size=(2, 2), name="actor_block{0}_avgpool".format(i+1))(x)        
         x = Flatten(name="actor_flatten")(x)
         x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION, name="actor_dense1_{0}".format(self.ACTIVATION))(x) 
