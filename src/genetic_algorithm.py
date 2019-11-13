@@ -20,22 +20,84 @@ keep an unedited copy of the best agent
 np.random.seed(seed=42)
 
 class GeneticLearning(AlgorithmBase):
+    """
+    This might be the main class for running various genetic algorithms that I design
+
+    Random Agents or NN Agents
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         pass
 
+    def create_random_genepool(self, n):
+        """
+        Creates Genepool of size n comprised of random agents
+        """
+        pass
+
+    def create_new_genepool(self, old_genepool, top_percent):
+        """
+        Creates new genepool from some top_percent of old_genepool
+        This might need to fill the genepool with agents that are children (shared genes with two agents)
+        """
+        pass
+
+    def run(self):
+        """
+        Starts and optimizes agents on the environment
+        """
+        pass
+
 class Mutator(object):
+    """
+    This will be a class for goofing around with child agents
+    """
     def __init__(self):
+        pass
+
+    def create_child(self):
+        """
+        This'll likely take 2 agents as an input (either to this method or to this class) and return a child agent from them
+        """
         pass
 
 class Genes(object):
+    """
+    This is just going to be a class to represent the actions/weights/etc. of an agent
+    """
     def __init__(self):
         pass
 
-class Organism(Genes):
+class Agent(Genes):
+    """
+    The actual members of a genepool, each have their own genes associated with them
+    """
     def __init__(self):
         pass
+    
+    def update_genes(self):
+        """
+        Create genes for the agent/Change the genetic structure (useful for mutations and whatnot)
+        """
+        pass
 
-class Generation(object):
+    def get_action(self):
+        """
+        Choose what action will be chosen, so random or possibly through a NN
+        """
+        pass
+
+class Genepool(object):
+    """
+    This is a group of agents, so each genepool should be better than the last (ideally)
+    """
     def __init__(self):
+        pass
+    
+    def random_genes(self, n):
+        """
+        Probably a method to actually create a pool of random agents?
+
+        This method might be better placed somewhere else
+        """
         pass
