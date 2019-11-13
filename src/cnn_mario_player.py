@@ -14,11 +14,11 @@ class CNNPlayer(object):
     """
     def __init__(self):
         self.ACTIVATION = "tanh"        # Activation function to use in the actor/critic networks
-        self.NUM_FILTERS = 32            # Preliminary number of filters for the layers in agent/critic networks
+        self.NUM_FILTERS = 24            # Preliminary number of filters for the layers in agent/critic networks
         self.STRIDE = (2, 2)
         self.KERNEL_SIZE = (5, 5)
         self.HIDDEN_SIZE = 32            # Number of neurons in actor/critic network final dense layer
-        self.NUM_BLOCKS = 2             # Number of convolutional layers in the agent and critic networks
+        self.NUM_BLOCKS = 1             # Number of convolutional layers in the agent and critic networks
         # try large filters + strides + valid padding
         self.LEARNING_RATE = 1e-4       # Lower lr stabilises training greatly
         self.parameter_dict = {
@@ -37,7 +37,7 @@ class CNNPlayer(object):
         old_prediction = Input(shape=(NUM_ACTIONS,), name="actor_previous_prediction") # Previous action predictions (probabilities)
 
         x = Conv2D(filters=self.NUM_FILTERS, name="actor_block0_conv0", **self.parameter_dict)(state_input)
-        for i in range(self.NUM_BLOCKS - 1): 
+        for i in range(self.NUM_BLOCKS): 
             x = Conv2D(filters=self.NUM_FILTERS * (i+2), name="actor_block{0}_conv0".format(i+1), **self.parameter_dict)(x)
             x = Conv2D(filters=self.NUM_FILTERS * (i+2), name="actor_block{0}_conv1".format(i+1), padding="same", **self.parameter_dict)(x)
             x = AvgPool2D(pool_size=(2, 2), name="actor_block{0}_avgpool".format(i+1))(x)        
@@ -60,9 +60,9 @@ class CNNPlayer(object):
         state_input = Input(shape=NUM_STATE) # Input size is the (224, 256, 3) image
 
         x = Conv2D(filters=self.NUM_FILTERS, name="critic_block0_conv0", **self.parameter_dict)(state_input)
-        for i in range(self.NUM_BLOCKS - 1):
+        for i in range(self.NUM_BLOCKS):
             x = Conv2D(filters=self.NUM_FILTERS * (i+2), name="critic_block{0}_conv0".format(i+1), **self.parameter_dict)(x)
-            x = Conv2D(filters=self.NUM_FILTERS * (i+2), name="critic_block{0}_conv1".format(i+1), **self.parameter_dict)(x)
+            x = Conv2D(filters=self.NUM_FILTERS * (i+2), name="critic_block{0}_conv1".format(i+1), padding='same', **self.parameter_dict)(x)
             x = AvgPool2D(pool_size=(2, 2), name="critic_block{0}_avgpool".format(i+1))(x)
         x = Flatten(name="critic_flatten")(x)
         x = Dense(self.HIDDEN_SIZE, activation=self.ACTIVATION, name="critic_dense1_{0}".format(self.ACTIVATION))(x) 

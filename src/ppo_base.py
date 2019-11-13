@@ -22,11 +22,11 @@ class PPOBase(AlgorithmBase):
         self.reward = []
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
-        self.MAX_EPISODES = 500
+        self.MAX_EPISODES = 200
         self.EPOCHS = 2                 # 2 epochs seems the best. Actor doesn't benefit much from more, and critic sees the best performance increase on the first two.
         self.GAMMA = 0.80               # Used for reward scaling
-        self.BUFFER_SIZE = 64           # Number of actions to fit the model to
-        self.BATCH_SIZE = 2
+        self.BUFFER_SIZE = 512           # Number of actions to fit the model to
+        self.BATCH_SIZE = 16
         self.NUM_STATE = self.env.observation_space.shape
         self.NUM_ACTIONS = self.env.action_space.n
         self.LOSS_CLIPPING = 0.2
@@ -133,11 +133,11 @@ class PPOBase(AlgorithmBase):
         obs, action, pred, reward = np.array(batch[0]), np.array(batch[1]), np.array(batch[2]), np.reshape(np.array(batch[3]), (len(batch[3]), 1))
         pred = np.reshape(pred, (pred.shape[0], pred.shape[2]))
         # These are here just to get some info to prep to refactor this stupid function
-        print("Buffer size: ", self.BUFFER_SIZE)
+        """print("Buffer size: ", self.BUFFER_SIZE)
         print("obs: ", obs.shape)
         print("action: ", action.shape)
         print("pred: ", pred.shape)
-        print("reward: ", reward.shape)
+        print("reward: ", reward.shape)"""
         return obs, action, pred, reward
     
     def _write_reward_history(self, verbose=1):
