@@ -14,7 +14,7 @@ def create_parser():
                 training records/models/weights to it.
                 """)
     parser.add_argument("-g", '--game', default='SuperMarioWorld-Snes', help="This is the name of the game to learn on", type=str)
-    parser.add_argument("-t", "--state", default="YoshisIsland2", help="If specified, pick the name of the state to train on", type=str)
+    parser.add_argument("-t", "--state", default="YoshiIsland2", help="If specified, pick the name of the state to train on", type=str)
     parser.add_argument("-s", '--scenario', default="scenarios/scenario.json", help="Try out a custom scenario", type=str)
     parser.add_argument("-o", "--observations", default=0, help="Either 0 or 1, 0 for screen observation, 1 for numerical observation", type=int)
     parser.add_argument("-r", "--record", default="learning_movies/", help="Choose a directory to record the training session to", type=str)
