@@ -1,6 +1,6 @@
 import numpy as np
 from mutators import Mutator
-from genetic_agents import RandomAgent
+from genetic_agents import RandomAgent, ParallelAgent
 
 class Genome(object):
     """
@@ -13,7 +13,7 @@ class Genome(object):
         self.fitness_levels = np.empty(shape=(self.size,), dtype=float)
         if full:
             self._populate_genome()
-        if starting_agents:
+        if starting_agents is not None:
             self._initialize_genome_with_agents(starting_agents)
     
     def _initialize_genome_with_agents(self, starting_agents):
@@ -59,7 +59,7 @@ class Genome(object):
         top_percent is a float to pull the top percentage of a genome or int to pull the top x agents
         """
         self.agents = self.agents.reshape(self.size,)
-        self.fitness_levels = self.fitness_levels(self.size,)
+        self.fitness_levels = self.fitness_levels.reshape(self.size,)
         if top_percent < 1:
             num_agents = int(self.size * top_percent)
         else:
@@ -71,5 +71,18 @@ class Genome(object):
         return dict(zip(agents_to_keep, top_agents_fitness))
         #returns dictionary of agents and their fitness for use in GeneticLearning class
 
-if __name__ == "__main__":
-    pass
+
+class ParallelGenome(Genome):
+
+    def __init__(self, size, full=True, starting_agents=None, envs=1):
+        self.NUM_ENVS = envs
+        super().__init__(size, full, starting_agents)
+        self.agents = self.agents.reshape(-1, self.NUM_ENVS)
+        self.fitness_levels = self.fitness_levels.reshape(-1, self.NUM_ENVS)
+
+    def _populate_genome(self):
+        """
+        Populates the genome with random agents
+        """
+        for i in range(self.size):
+            self.agents[i] = ParallelAgent()

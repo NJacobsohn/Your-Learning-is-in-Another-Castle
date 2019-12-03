@@ -1,26 +1,25 @@
-from genes import BaseGene, RandomGene
+from genes import BaseGene, RandomGene, ParallelGene
 
-class BlankAgent(object):
+class BaseAgent(object):
 
-    def __init__(self, gene_sequence=None):
+    def __init__(self):
         self.genes = BaseGene()
-        self.update_genes(gene_sequence)
 
     def update_genes(self, genes):
         self.genes.sequence = genes
 
-class RandomAgent(object):
-    """
-    The actual members of a genepool, each have their own genes associated with them
-    """
-    def __init__(self, fitness_function=None):
-        """
-        init string
-        """
+class BlankAgent(BaseAgent):
+
+    def __init__(self, gene_sequence=None):
+        super().__init__()
+        self.update_genes(gene_sequence)
+
+class RandomAgent(BaseAgent):
+
+    def __init__(self):
         self.genes = RandomGene()
 
-    def update_genes(self, genes):
-        self.genes = genes
+class ParallelAgent(BaseAgent):
 
-if __name__ == "__main__":
-    pass
+    def __init__(self):
+        self.genes = ParallelGene()

@@ -2,6 +2,7 @@ import argparse
 from ppo_base import PPOBase
 from brute_mario_player import BrutePlayer
 from random_mario_player import RandomPlayer
+from parallel_evolution import ParallelGeneticLearning
 
 def create_parser():
     """
@@ -26,15 +27,9 @@ def create_parser():
                     Random
                     CNNPPO
                     NNPPO
-
-                Planned options:
-                    deepq
-                    a2c/a3c
-                    acer
-                    acktr
-                    trpo
-                    ddpg
-                """, type=str)              
+                    Genetic
+                """, type=str)
+    #parser.add_argument("-e", "--environments", default=1, help="The number of parallel environments to run", type=int)            
     return parser
 
 def choose_algorithm(args):
@@ -46,7 +41,8 @@ def choose_algorithm(args):
         "brute" : brute_alg,
         "random" : random_alg,
         "cnnppo" :  cnn_ppo,
-        "nnppo" : nn_ppo}
+        "nnppo" : nn_ppo,
+        "genetic" : genetic_alg}
 
     algorithm = args.algorithm.lower()
 
@@ -58,9 +54,14 @@ def choose_algorithm(args):
             Brute
             CNNPPO
             NNPPO
+            Genetic
         """.format(algorithm))   
     return func(args)
 #project_name, game, state, scenario, observation_type, record, variables
+
+def genetic_alg(args):
+    return ParallelGeneticLearning(args.project, args.game, args.state, args.scenario, args.observations, args.record, args.variables)
+
 def brute_alg(args):
     return BrutePlayer(args.project, args.game, args.state, args.scenario, args.observations, args.record, args.variables)
 

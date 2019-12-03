@@ -3,9 +3,9 @@ import retro
 import argparse
 import operator
 import numpy as np
-from genomes import Genome
 from mutators import Mutator
-from genetic_agents import RandomAgent
+from genomes import ParallelGenome
+from genetic_agents import ParallelAgent
 from algorithm_object_base import AlgorithmBase
 from action_discretizer import MarioDiscretizer
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
@@ -34,13 +34,6 @@ Assorted TO-DOs:
     - Part of this might involve splitting the script up a little
 """
 
-#Below is the framework for parallel envs
-
-
-
-
-
-
 class ParallelGeneticLearning(AlgorithmBase):
     """
     This might be the main class for running various genetic algorithms that I design
@@ -53,14 +46,13 @@ class ParallelGeneticLearning(AlgorithmBase):
         self.envs = self._parallelize()
         self.NUM_AGENTS = 8
         self._check_math()
-        self.PERC_AGENTS = 2
+        self.PERC_AGENTS = .25
         self.NUM_GENOMES = 10
-        self.BEST_AGENT = RandomAgent()
-        self.BEST_FITNESS = 0
-        self.CURRENT_GENOME_IDX = 0
+        self.best_agent = ParallelAgent()
+        self.best_fitness = 0
         self.current_episode = 0
-        self.EPISODE_REWARDS = {}
-        self.genomes = np.empty(shape=(self.NUM_GENOMES+1,), dtype=Genome)
+        self.episode_rewards = {}
+        self.genomes = np.empty(shape=(self.NUM_GENOMES+1,), dtype=ParallelGenome)
         self._create_initial_genome()
 
     def _check_math(self):
@@ -83,27 +75,20 @@ class ParallelGeneticLearning(AlgorithmBase):
     def _parallelize(self):
         envs = [self._make_vec_envs() for _ in range(self.NUM_ENVS)]
         envs = SubprocVecEnv(envs)
+        _ = envs.reset()
         return envs
 
     def _create_initial_genome(self):
-        start_g = Genome(size=self.NUM_AGENTS)
-        start_g.agents = start_g.agents.reshape(-1, self.NUM_ENVS)
-        start_g.fitness_levels = start_g.fitness_levels.reshape(-1, self.NUM_ENVS)
-        self.genomes[0] = start_g
-        self._update_active_genome()
+        self.genomes[0] = ParallelGenome(size=self.NUM_AGENTS, envs=self.NUM_ENVS)
+        self._update_active_genome(0)
 
-    def _update_active_genome(self):
-        self.active_genome = self.genomes[self.CURRENT_GENOME_IDX]
-        self.CURRENT_GENOME_IDX += 1
+    def _update_active_genome(self, idx):
+        self.active_genome = self.genomes[idx]
 
     def _create_action_matrix(self, agent_pool):
-        print(agent_pool[0].genes.sequence.shape)
-        action_matrix = np.array([agent.genes.sequence.reshape(1, -1) for agent in agent_pool]).T
-        print(action_matrix.shape)
-        print(action_matrix[:100])
-        return action_matrix
+        return np.stack([agent.genes.sequence for agent in agent_pool]).T
 
-    def update_genome(self, old_genome, top_percent):
+    def update_genome(self, old_genome, top_percent, genome_idx):
         """
         Updates a genepool from some top_percent of old_genepool
         This might need to fill the genepool with agents that are children (shared genes with two agents)
@@ -111,68 +96,36 @@ class ParallelGeneticLearning(AlgorithmBase):
         genetic_winners = old_genome.get_top(top_percent)
         top_agent = max(genetic_winners.items(), key=operator.itemgetter(1))[0]
         top_fitness = genetic_winners[top_agent]
-        if top_fitness > self.BEST_FITNESS:
-            self.BEST_AGENT = top_agent
-            self.BEST_FITNESS = top_fitness
-        genetic_winners[self.BEST_AGENT] = self.BEST_FITNESS
-        new_genome = Genome(size=self.NUM_AGENTS, full=False, starting_agents=np.array(list(genetic_winners.keys())))
-        new_genome.agents = new_genome.agents.reshape(-1, self.NUM_ENVS)
-        new_genome.fitness_levels = new_genome.fitness_levels.reshape(-1, self.NUM_ENVS)
-        self.genomes[self.CURRENT_GENOME_IDX] = new_genome
-        self._update_active_genome()
+        if top_fitness > self.best_fitness:
+            self.best_agent = top_agent
+            self.best_fitness = top_fitness
+        genetic_winners[self.best_agent] = self.best_fitness
+        new_genome = ParallelGenome(size=self.NUM_AGENTS, full=False, starting_agents=np.array(list(genetic_winners.keys())), envs=self.NUM_ENVS)
+        self.genomes[genome_idx] = new_genome
+        self._update_active_genome(genome_idx)
         
     def run(self):
         """
         Starts and optimizes agents on the environment
-        """
-        """
-        PSEUDOCODE:
-
-        for n genomes:
-            for each row of agents in genomes:
-                create action matrix
-                for action in action matrix:
-                    step envs and track rewards
-                update agents fitness
-            create new genome
+        Parallel runtime is ~13 seconds for 4 agents with 6k actions. (almost 7 seconds saved!)
         """
         for n in range(self.NUM_GENOMES):
-            print("Genome #{0} Best Reward: {1}".format(n, self.BEST_FITNESS))
+            print("Genome #{0} Best Reward: {1}".format(n, self.best_fitness))
             for idx, agent_row in enumerate(self.active_genome.agents):
                 _ = self.envs.reset()
-                fitness = np.zeros(shape=(self.NUM_ENVS, 1))
+                fitness = np.zeros(shape=(self.NUM_ENVS,))
                 action_matrix = self._create_action_matrix(agent_row)
                 for action_row in action_matrix:
                     _, rewards, _, _ = self.envs.step(action_row)
-                    print(rewards.shape)
-                    fitness += rewards.reshape(shape=(self.NUM_ENVS, 1))
+                    fitness += rewards
                 self.active_genome.fitness_levels[idx] = fitness
-                self.EPISODE_REWARDS[self.current_episode] = fitness
+                self.episode_rewards[self.current_episode] = fitness
                 self.current_episode += self.NUM_ENVS
-                print("Agent: {0}-{1} \nFitness: {2}\n".format(idx, idx+4, fitness))
-            self.update_genome(self.active_genome, self.PERC_AGENTS)
-        for episode, reward in self.EPISODE_REWARDS.items():
+                print("Agents: {0}-{1} \nFitness: {2}\n".format(idx*self.NUM_ENVS, (idx*self.NUM_ENVS)+self.NUM_ENVS, fitness))
+            self.update_genome(self.active_genome, self.PERC_AGENTS, n+1)
+        for episode, reward in self.episode_rewards.items():
             if sum(reward >= 350) > 0:
                 print(episode)
-        # for n in range(self.NUM_GENOMES):
-        #     print("Genome #{0} Best Reward: {1}".format(n, self.BEST_FITNESS))
-        #     for idx, agent in enumerate(self.active_genome.agents):
-        #         fitness = 0
-        #         done = False
-        #         _ = self.envs.reset()
-        #         for action in self.action:
-        #             if done:
-        #                 break
-        #             _, reward, done, _ = self.envs.step(action)
-        #             fitness += reward
-        #         self.active_genome.fitness_levels[idx] = fitness
-        #         self.EPISODE_REWARDS[self.current_episode] = fitness
-        #         self.current_episode += 1
-        #         print("Agent: {0} \nFitness: {1}\n".format(idx, fitness))
-        #     self.update_genome(self.active_genome, self.PERC_AGENTS)
-        # for episode, reward in self.EPISODE_REWARDS.items():
-        #     if reward >= 350:
-        #         print(episode)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

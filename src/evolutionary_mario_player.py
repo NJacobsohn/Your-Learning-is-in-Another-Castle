@@ -21,7 +21,6 @@ Things to consider
 Assorted TO-DOs:
 
 - Break script into agent/gene, mutation, genome scripts (might mean moving them to their own folder)
-- Add multiprocessing functionality (maybe done through that retro wrapper + multiple defined environments?)
 - Add more mutation functions
 - Improve interactibility with parameters
 - Save metrics (genome rewards, agent rewards, overall rewards, etc.)
@@ -76,6 +75,7 @@ class GeneticLearning(AlgorithmBase):
     def run(self):
         """
         Starts and optimizes agents on the environment
+        Takes ~4.8ish seconds per agent with 6000 actions
         """
         for n in range(self.NUM_GENOMES):
             print("Genome #{0} Best Reward: {1}".format(n, self.BEST_FITNESS))

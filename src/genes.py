@@ -47,14 +47,24 @@ class RandomGene(BaseGene):
     """
     def __init__(self):
         super().__init__()
-        self.length = 6000#np.random.randint(low=6000, high=6500)
+        self.length = np.random.randint(low=6000, high=6500)
         self._generate_actions()
     
     def _generate_actions(self):
         """
-        Create a random gene structure. These are actions to take
+        Create a random gene structure. These are actions
         """
         self.sequence = np.random.randint(self.NUM_ACTIONS, size=(self.length,))
 
-if __name__ == "__main__":
-    pass
+class ParallelGene(BaseGene):
+
+    def __init__(self):
+        super().__init__()
+        self.length = 6000
+        self._generate_actions()
+    
+    def _generate_actions(self):
+        """
+        Create a random gene structure. These are actions
+        """
+        self.sequence = np.random.randint(self.NUM_ACTIONS, size=(self.length,))
