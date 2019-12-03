@@ -18,24 +18,9 @@ class RandomAgent(object):
         init string
         """
         self.genes = RandomGene()
-        self.fitness = 0
-        self.fitness_function = fitness_function
 
     def update_genes(self, genes):
         self.genes = genes
-
-    def update_fitness(self, reward):
-        if self.fitness_function:
-            self.fitness += self.fitness_function(reward)
-        else:
-            self.fitness += reward
-
-    def get_action(self):
-        """
-        This is a method for getting/predicting actions.
-        """
-        pass
-
 
 if __name__ == "__main__":
     pass

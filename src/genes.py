@@ -47,7 +47,7 @@ class RandomGene(BaseGene):
     """
     def __init__(self):
         super().__init__()
-        self.length = np.random.randint(low=6000, high=6500)
+        self.length = 6000#np.random.randint(low=6000, high=6500)
         self._generate_actions()
     
     def _generate_actions(self):

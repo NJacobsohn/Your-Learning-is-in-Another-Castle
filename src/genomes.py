@@ -9,8 +9,8 @@ class Genome(object):
     def __init__(self, size, full=True, starting_agents=None):
         self.size = size
         self.BEST_AGENT = {}
-        self.agents = np.empty(shape=(size,), dtype=RandomAgent)
-        self.fitness_levels = np.empty(shape=(size,), dtype=float)
+        self.agents = np.empty(shape=(self.size,), dtype=RandomAgent)
+        self.fitness_levels = np.empty(shape=(self.size,), dtype=float)
         if full:
             self._populate_genome()
         if starting_agents:
@@ -58,6 +58,8 @@ class Genome(object):
         """
         top_percent is a float to pull the top percentage of a genome or int to pull the top x agents
         """
+        self.agents = self.agents.reshape(self.size,)
+        self.fitness_levels = self.fitness_levels(self.size,)
         if top_percent < 1:
             num_agents = int(self.size * top_percent)
         else:
