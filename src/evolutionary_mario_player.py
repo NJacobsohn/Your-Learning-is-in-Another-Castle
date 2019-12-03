@@ -16,6 +16,17 @@ Things to consider
 
 - Is this going to produce good mario players with a NN level or is it going to memorize levels?
 - Is memorizing the level fine if it's computationally quick?
+
+Assorted TO-DOs:
+
+- Break script into agent/gene, mutation, genome scripts (might mean moving them to their own folder)
+- Add multiprocessing functionality (maybe done through that retro wrapper + multiple defined environments?)
+- Add more mutation functions
+- Improve interactibility with parameters
+- Save metrics (genome rewards, agent rewards, overall rewards, etc.)
+    - try and use same format as the ppo_base.py metrics
+- Clean/refactor code, good amounts of un-used lines + duplicate metrics being tracked
+    - Part of this might involve splitting the script up a little
 """
 class GeneticLearning(AlgorithmBase):
     """
@@ -26,7 +37,7 @@ class GeneticLearning(AlgorithmBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.env = self.make_env()
-        self.NUM_AGENTS = 25
+        self.NUM_AGENTS = 20
         self.PERC_AGENTS = 5
         self.NUM_GENOMES = 25
         self.BEST_AGENT = RandomAgent()
@@ -57,7 +68,7 @@ class GeneticLearning(AlgorithmBase):
             self.BEST_AGENT = top_agent
             self.BEST_FITNESS = top_fitness
         genetic_winners[self.BEST_AGENT] = self.BEST_FITNESS
-        new_genome = Genome(size=self.NUM_AGENTS, full=False, starting_agents=list(genetic_winners.keys()))
+        new_genome = Genome(size=self.NUM_AGENTS, full=False, starting_agents=np.array(list(genetic_winners.keys())))
         self.genomes[self.CURRENT_GENOME_IDX] = new_genome
         self._update_active_genome()
         
@@ -82,7 +93,7 @@ class GeneticLearning(AlgorithmBase):
                 print("Agent: {0} \nFitness: {1}\n".format(idx, fitness))
             self.update_genome(self.active_genome, self.PERC_AGENTS)
         for episode, reward in self.EPISODE_REWARDS.items():
-            if reward > 40:
+            if reward >= 350:
                 print(episode)
 
 class Mutator(object):
