@@ -25,7 +25,7 @@ class PPOBase(AlgorithmBase):
         self.MAX_EPISODES = 200
         self.EPOCHS = 2                 # 2 epochs seems the best. Actor doesn't benefit much from more, and critic sees the best performance increase on the first two.
         self.GAMMA = 0.80               # Used for reward scaling
-        self.BUFFER_SIZE = 512           # Number of actions to fit the model to
+        self.BUFFER_SIZE = 512          # Number of actions to fit the model to
         self.BATCH_SIZE = 16
         self.NUM_STATE = self.env.observation_space.shape
         self.NUM_ACTIONS = self.env.action_space.n
