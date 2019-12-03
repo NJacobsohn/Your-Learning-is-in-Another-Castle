@@ -9,7 +9,7 @@ from genetic_agents import ParallelAgent
 from algorithm_object_base import AlgorithmBase
 from action_discretizer import MarioDiscretizer
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
-
+np.set_printoptions(suppress=True)
 """
 Things to consider
 
@@ -42,11 +42,11 @@ class ParallelGeneticLearning(AlgorithmBase):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.NUM_ENVS = 4
+        self.NUM_ENVS = 10
         self.envs = self._parallelize()
-        self.NUM_AGENTS = 8
+        self.NUM_AGENTS = 20
         self._check_math()
-        self.PERC_AGENTS = .25
+        self.PERC_AGENTS = .2
         self.NUM_GENOMES = 10
         self.best_agent = ParallelAgent()
         self.best_fitness = 0
@@ -121,11 +121,13 @@ class ParallelGeneticLearning(AlgorithmBase):
                 self.active_genome.fitness_levels[idx] = fitness
                 self.episode_rewards[self.current_episode] = fitness
                 self.current_episode += self.NUM_ENVS
-                print("Agents: {0}-{1} \nFitness: {2}\n".format(idx*self.NUM_ENVS, (idx*self.NUM_ENVS)+self.NUM_ENVS, fitness))
+                print("Agents: {0}-{1} \nFitness: {2}\n".format((idx*self.NUM_ENVS)+1, (idx*self.NUM_ENVS)+self.NUM_ENVS, fitness))
             self.update_genome(self.active_genome, self.PERC_AGENTS, n+1)
         for episode, reward in self.episode_rewards.items():
             if sum(reward >= 350) > 0:
                 print(episode)
+
+#Forest 2 is underwater level
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -135,8 +137,8 @@ if __name__ == "__main__":
                 training records/models/weights to it.
                 """)
     parser.add_argument("-g", '--game', default='SuperMarioWorld-Snes', help="This is the name of the game to learn on", type=str)
-    parser.add_argument("-t", "--state", default="YoshiIsland2", help="If specified, pick the name of the state to train on", type=str)
-    parser.add_argument("-s", '--scenario', default="scenarios/scenario.json", help="Try out a custom scenario", type=str)
+    parser.add_argument("-t", "--state", default="YoshiIsland1", help="If specified, pick the name of the state to train on", type=str)
+    parser.add_argument("-s", '--scenario', default="scenarios/genetic_scenario.json", help="Try out a custom scenario", type=str)
     parser.add_argument("-o", "--observations", default=0, help="Either 0 or 1, 0 for screen observation, 1 for numerical observation", type=int)
     parser.add_argument("-r", "--record", default="learning_movies/", help="Choose a directory to record the training session to", type=str)
     parser.add_argument("-v", "--variables", default="variables/data.json", help="Path to reward variable json", type=str)

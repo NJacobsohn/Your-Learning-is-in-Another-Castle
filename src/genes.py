@@ -60,7 +60,7 @@ class ParallelGene(BaseGene):
 
     def __init__(self):
         super().__init__()
-        self.length = 6000
+        self.length = 7500
         self._generate_actions()
     
     def _generate_actions(self):
