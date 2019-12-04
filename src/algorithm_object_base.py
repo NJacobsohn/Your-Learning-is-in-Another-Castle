@@ -19,7 +19,7 @@ class AlgorithmBase(object):
         """
         Moves the project directory in the chosen recording path
         """
-        full_path = record_path + "/" + self.project_name + "/"
+        full_path = record_path + self.project_name + "/"
         if not os.path.exists(full_path):
             os.makedirs(full_path)
         return full_path

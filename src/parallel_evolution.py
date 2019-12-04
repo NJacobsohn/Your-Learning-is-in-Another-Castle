@@ -1,3 +1,4 @@
+import os
 import sys
 import retro
 import argparse
@@ -9,6 +10,7 @@ from genetic_agents import ParallelAgent
 from algorithm_object_base import AlgorithmBase
 from action_discretizer import MarioDiscretizer
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
+from baselines.common.vec_env.vec_video_recorder import VecVideoRecorder
 np.set_printoptions(suppress=True)
 """
 Things to consider
@@ -18,36 +20,26 @@ Things to consider
 - Maybe some algorithm for agents could be put into play where:
     It takes in a set of actions and the sum reward from those actions
     Predicts a new action set to get a higher reward
-
 - Is this going to produce good mario players with a NN level or is it going to memorize levels?
 - Is memorizing the level fine if it's computationally quick?
 
 Assorted TO-DOs:
-
-- Break script into agent/gene, mutation, genome scripts (might mean moving them to their own folder)
-- Add multiprocessing functionality (maybe done through that retro wrapper + multiple defined environments?)
-- Add more mutation functions
 - Improve interactibility with parameters
 - Save metrics (genome rewards, agent rewards, overall rewards, etc.)
     - try and use same format as the ppo_base.py metrics
-- Clean/refactor code, good amounts of un-used lines + duplicate metrics being tracked
-    - Part of this might involve splitting the script up a little
 """
-
 class ParallelGeneticLearning(AlgorithmBase):
     """
     This might be the main class for running various genetic algorithms that I design
-
-    Random Agents or NN Agents
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.NUM_ENVS = 10
+        self.NUM_ENVS = 20
         self.envs = self._parallelize()
         self.NUM_AGENTS = 20
         self._check_math()
         self.PERC_AGENTS = .2
-        self.NUM_GENOMES = 10
+        self.NUM_GENOMES = 20
         self.best_agent = ParallelAgent()
         self.best_fitness = 0
         self.current_episode = 0
@@ -66,7 +58,7 @@ class ParallelGeneticLearning(AlgorithmBase):
             info=self.variables, 
             obs_type=self.observation_type,
             scenario=self.scenario,
-            record=self.record_path)
+            record=False)
             env.load_state(self.state)
             env = MarioDiscretizer(env)
             return env
@@ -75,6 +67,7 @@ class ParallelGeneticLearning(AlgorithmBase):
     def _parallelize(self):
         envs = [self._make_vec_envs() for _ in range(self.NUM_ENVS)]
         envs = SubprocVecEnv(envs)
+        envs = VecVideoRecorder(envs, self.record_path, record_video_trigger=lambda x: x == 0, video_length=4000)
         _ = envs.reset()
         return envs
 
@@ -103,7 +96,7 @@ class ParallelGeneticLearning(AlgorithmBase):
         new_genome = ParallelGenome(size=self.NUM_AGENTS, full=False, starting_agents=np.array(list(genetic_winners.keys())), envs=self.NUM_ENVS)
         self.genomes[genome_idx] = new_genome
         self._update_active_genome(genome_idx)
-        
+
     def run(self):
         """
         Starts and optimizes agents on the environment
@@ -121,13 +114,10 @@ class ParallelGeneticLearning(AlgorithmBase):
                 self.active_genome.fitness_levels[idx] = fitness
                 self.episode_rewards[self.current_episode] = fitness
                 self.current_episode += self.NUM_ENVS
-                print("Agents: {0}-{1} \nFitness: {2}\n".format((idx*self.NUM_ENVS)+1, (idx*self.NUM_ENVS)+self.NUM_ENVS, fitness))
+                print("Agents: {0}-{1} \nFitness: {2}\n".format((idx*self.NUM_ENVS), (idx*self.NUM_ENVS)+self.NUM_ENVS-1, fitness))
             self.update_genome(self.active_genome, self.PERC_AGENTS, n+1)
         for episode, reward in self.episode_rewards.items():
-            if sum(reward >= 350) > 0:
-                print(episode)
-
-#Forest 2 is underwater level
+            print("{0}: {1}".format(episode, reward))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -137,7 +127,7 @@ if __name__ == "__main__":
                 training records/models/weights to it.
                 """)
     parser.add_argument("-g", '--game', default='SuperMarioWorld-Snes', help="This is the name of the game to learn on", type=str)
-    parser.add_argument("-t", "--state", default="YoshiIsland1", help="If specified, pick the name of the state to train on", type=str)
+    parser.add_argument("-t", "--state", default="YoshiIsland2", help="If specified, pick the name of the state to train on", type=str)
     parser.add_argument("-s", '--scenario', default="scenarios/genetic_scenario.json", help="Try out a custom scenario", type=str)
     parser.add_argument("-o", "--observations", default=0, help="Either 0 or 1, 0 for screen observation, 1 for numerical observation", type=int)
     parser.add_argument("-r", "--record", default="learning_movies/", help="Choose a directory to record the training session to", type=str)
