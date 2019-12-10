@@ -1,6 +1,6 @@
 # Your Learning is in Another Castle
 
-To skip right away to seeing the computer play, [click here.](#the-numerical-model)
+To jump to seeing a model in action, [click here.](#the-numerical-model)
 
 ## Table of Contents
 
@@ -8,13 +8,16 @@ To skip right away to seeing the computer play, [click here.](#the-numerical-mod
 2. [Questions](#questions)
 3. [Environment](#environment)
 4. [Environment Setup](#environment-setup)
-5. [PPO](#ppo)
-6. [Image vs. Numerical Models](#image-vs.-numerical-models)
-7. [The Numerical Model](#the-numerical-model)
-8. [The Image Model](#the-image-model)
-9. [Conclusion](#conclusion)
-10. [What's Next?](#what's-next?)
-11. [Photo and Code Credits](#photo-and-code-credits)
+5. [Model Decisions](#model-decisions)
+6. [Genetic Learning](#genetic-learning)
+    - [Creating Children](#creating-children)
+7. [PPO](#ppo)
+    - [Image vs. Numerical Models](#image-vs.-numerical-models)
+        - [The Numerical Model](#the-numerical-model)
+        - [The Image Model](#the-image-model)
+8. [Conclusion](#conclusion)
+9. [What's Next?](#what's-next?)
+10. [References and Credits](#references-and-credits)
 
 ## **Overview**
 
@@ -36,7 +39,7 @@ I used a addon for gym called retrogym which has support for quite a few older e
 
 ## **Environment Setup**
 
-In order to setup my custom environment, I had quite a few things I had to work out. First, how would I actually give incremental rewards to push the model to try and beat a level? Second, how could I define if a level was beaten? Third, how do I stop the model from doing what I call "idiot actions" like pausing the game, accidentally quitting, etc.? To tackle the first problem, I had to look into if there was a variable in the game that tracks the player's position in a level. To find this and any other variables, I had to follow memory maps (locations in RAM on where these variables are set to save to) and then actually pull those values from the emulator using retrogym's handy game integration tool. I needed the location in memory in base 16 (e.g. 7E13CE for if the midway flag was crossed), which then is converted to its base 10 value automatically by the integration tool (for the earlier example, it's now 8262606) to be used by the python environment. Another important part of these variables which had to be specified was their endiannesses, how many bytes they were, and whether or not it was a signed int. These values can be found in [this .json file I built.](https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/variables/data.json)
+In order to setup my custom environment, I had quite a few things to work out. First, how would I actually give incremental rewards to push the model to try and beat a level? Second, how could I define if a level was beaten? Third, how do I stop the model from doing environment-breaking actions like pausing the game, accidentally quitting, etc.? To tackle the first problem, I had to look into if there was a variable in the game that tracks the player's position in a level. To find this and any other variables, I had to follow memory maps (locations in RAM on where these variables are set to save to) and then actually pull those values from the emulator using retrogym's handy game integration tool. I needed the location in memory in base 16 (e.g. 7E13CE for if the midway flag was crossed), which then is converted to its base 10 value automatically by the integration tool (for the earlier example, it's now 8262606) to be used by the python environment. Another important part of these variables which had to be specified was their endianness, how many bytes they were, and whether or not it was a signed integer. These values can be found in [this .json file I built.](https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/variables/data.json)
 
 After much searching and sifting, I finally found what I think to be a pretty good set of variables to work with. Each variable in the above link had to also be defined in the training scenario for the networks. The [scenario.json file](https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/scenarios/scenario.json) I built uses the variables I defined in the data.json to define the training environment. The training session is considered done if Mario loses a life or completes the level. The primary reward is distance traveled on the x axis within a level, with considerably large rewards given to reaching the midway checkpoint and completing the whole level. This was done to ensure that the best way to achieve the highest possible score involved beating the level, not using shenanigans like leaving and entering an area to spawn more enemies.
 
@@ -63,6 +66,10 @@ The following actions only exist in these explicitly defined forms (5 actions):
 
 These actions are defined in a custom wrapper for the environment, which can be explored in my [action discretizer script.](https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/src/action_discretizer.py)
 
+## **Model Decisions**
+
+When choosing what type of model I wanted to use, many thoughts went through my head. I knew for sure I wanted to try using some sort of multilayer perceptron with an optimization algorithm, so that was my first path that I went down. After some research on popular optimization methods, I settled on trying out PPO as it seemed relatively easy to implement and (according to the paper introducing it) was pretty computationally efficient. Computational efficiency is very important to me as I like to do as much tuning and training locally as I can. But training even a small CNN on the screen of the game isn't an easy feat, despite having good results on many levels. This model and optimization worked well for most levels that I tried, sometimes beating levels in as little as 13 episodes. The main levels that caused issues with this algorithm though was the water levels. These levels required entirely different control schemes and strategies that aren't easily apprent through just looking at the screen of the game. The CNN struggled greatly making any progress, which led me to research potential alternatives such as genetic learning.
+
 ## **PPO**
 
 In order to properly optimize how these models learn, I adapted a popular reinforcement learning algorithm called Proximal Policy Optimization. I adapted my own version of it to work with keras and retrogym from other projects people have done using PPO and gym. The basics of my implementation of PPO is there are 2 neural networks, an actor and a critic. The actor looks at the state of the game (141312 inputs for numerical observation or a 256x224x3 image for visual observation) and makes a prediction of an action to take at the current timestep. The critic looks at the state of the game and predicts what the reward will be for the next timestep. It subtracts the predicted reward from the actual reward to calculate what's called the advantage, which, along with the previous prediction, is used as the parameters of the loss function of the actor network. Basically the actor picks an action at a given timestep, the critic evaluates what the reward *should* be given the best action was chosen, then optimizes the networks based on how wrong they were.
@@ -70,6 +77,10 @@ In order to properly optimize how these models learn, I adapted a popular reinfo
 To read a much more intensive explanation of PPO, check out the [paper written about it.](https://arxiv.org/abs/1707.06347)
 
 To check out a more digestible explanation, (not quite layman's terms, but with a lexicon less nestled in academia) [OpenAI has a good blog post about it.](https://openai.com/blog/openai-baselines-ppo/)
+
+## **Genetic Learning**
+
+The general idea behind genetic learning is simple, can you have an agent learn an environment through evolution? Obviously computers don't have genes or anything like that, but it's easy to simulate. If you create a genepool of say, 100 agents, all of which have 1000 randomly generated actions assigned to them as their genes, then run all those agents through the environment, you've created 100 bad models. But if you track the rewards for each agent as it goes through the environment, then kill off the bottom 90% of agents, now you've got the best of the worst. But the whole point of evolution isn't being perfect immediately, it's adapting to your environment slowly, generation by generation. So now you need to create the next generation of agents, so to speak. You do this by creating children from the top 10% of the agents of the previous generation. The most basic algorithm would be creating 9 copies of each agent (assuming 100 agent genepools) but with a mutation chance. Meaning each action of the agent has some chance to mutate into a different, random action. You end up with the previous best agents + 90 children in this new generation. Then we run them through the environment again and repeat until happy. This basic model provides many things that the CNN + PPO version doesn't, which is faster computation times and the ability to run all these agnets in parallel.
 
 ## **Image vs. Numerical Models**
 
@@ -111,7 +122,7 @@ Both network types were trained with relatively small parameters and architectur
 - View how model(s) performance changes from level to level
 - Train a "master" model of each type on various levels in hopes of creating a TAS machine
 
-## **Research and Code Credits**
+## **References and Credits**
 
 - [PPO Paper](https://arxiv.org/abs/1707.06347)
 - [OpenAI PPO Blog Post](https://openai.com/blog/openai-baselines-ppo/)
@@ -127,4 +138,3 @@ Both network types were trained with relatively small parameters and architectur
 [cnn_episode2]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/cnn_episode2.gif
 [cnn_episode88]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/cnn_episode88.gif
 [cnn_episode89]:https://github.com/NJacobsohn/Your-Learning-is-in-Another-Castle/blob/master/img/cnn_episode89.gif
-
