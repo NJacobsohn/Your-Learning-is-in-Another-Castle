@@ -76,7 +76,7 @@ class OverlapMutator(object):
     def random_split(self, parent1, parent2, chunk_size):
         pass
 
-    def overlap_split(self, param=None):
+    def overlap_split(self, param=None): #this sucks
         parent1_genes = self.agent1.genes.sequence
         parent2_genes = self.agent2.genes.sequence
         new_genes = np.where(parent1_genes == parent2_genes, parent1_genes, np.random.randint(0, 17))
