@@ -4,30 +4,30 @@ import retro
 import argparse
 import operator
 import numpy as np
-from mutators import Mutator
-from genomes import ParallelGenome
-from genetic_agents import ParallelAgent
-from algorithm_object_base import AlgorithmBase
-from action_discretizer import MarioDiscretizer
+from smw_learning.genetic_learning.mutators import Mutator
+from smw_learning.genetic_learning.genomes import ParallelGenome
+from smw_learning.genetic_learning.genetic_agents import ParallelAgent
+from smw_learning.base import AlgorithmBase, MarioDiscretizer
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 from baselines.common.vec_env.vec_video_recorder import VecVideoRecorder
 np.set_printoptions(suppress=True)
-"""
-Things to consider
 
-- NN agents can either predict/save a set of actions and mutate/share those actions when making a new genome, or share weights and predict the actions actively
-- The NN agents might need to be trained slightly before creating a new genome
-- Maybe some algorithm for agents could be put into play where:
-    It takes in a set of actions and the sum reward from those actions
-    Predicts a new action set to get a higher reward
-- Is this going to produce good mario players with a NN level or is it going to memorize levels?
-- Is memorizing the level fine if it's computationally quick?
+# Things to consider
 
-Assorted TO-DOs:
-- Improve interactibility with parameters
-- Save metrics (genome rewards, agent rewards, overall rewards, etc.)
-    - try and use same format as the ppo_base.py metrics
-"""
+# - NN agents can either predict/save a set of actions and mutate/share those actions when making a new genome, or share weights and predict the actions actively
+# - The NN agents might need to be trained slightly before creating a new genome
+# - Maybe some algorithm for agents could be put into play where:
+#     It takes in a set of actions and the sum reward from those actions
+#     Predicts a new action set to get a higher reward
+# - Is this going to produce good mario players with a NN level or is it going to memorize levels?
+# - Is memorizing the level fine if it's computationally quick?
+
+# Assorted TO-DOs:
+# - Improve interactibility with parameters
+# - Save metrics (genome rewards, agent rewards, overall rewards, etc.)
+#     - try and use same format as the ppo_base.py metrics
+
+
 class ParallelGeneticLearning(AlgorithmBase):
     """
     This might be the main class for running various genetic algorithms that I design
@@ -118,6 +118,7 @@ class ParallelGeneticLearning(AlgorithmBase):
             self.update_genome(self.active_genome, self.PERC_AGENTS, n+1)
         for episode, reward in self.episode_rewards.items():
             print("{0}: {1}".format(episode, reward))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

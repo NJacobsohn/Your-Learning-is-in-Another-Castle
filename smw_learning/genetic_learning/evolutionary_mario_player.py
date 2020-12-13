@@ -1,33 +1,34 @@
 import argparse
 import operator
 import numpy as np
-from genomes import Genome
-from mutators import Mutator
-from genetic_agents import RandomAgent
-from algorithm_object_base import AlgorithmBase
+from smw_learning.base import AlgorithmBase
+from smw_learning.genetic_learning.genomes import Genome
+from smw_learning.genetic_learning.mutators import Mutator
+from smw_learning.genetic_learning.genetic_agents import RandomAgent
 
-"""
-Things to consider
 
-- NN agents can either predict/save a set of actions and mutate/share those actions when making a new genome, or share weights and predict the actions actively
-- The NN agents might need to be trained slightly before creating a new genome
-- Maybe some algorithm for agents could be put into play where:
-    It takes in a set of actions and the sum reward from those actions
-    Predicts a new action set to get a higher reward
+# Things to consider
 
-- Is this going to produce good mario players with a NN level or is it going to memorize levels?
-- Is memorizing the level fine if it's computationally quick?
+# - NN agents can either predict/save a set of actions and mutate/share those actions when making a new genome, or share weights and predict the actions actively
+# - The NN agents might need to be trained slightly before creating a new genome
+# - Maybe some algorithm for agents could be put into play where:
+#     It takes in a set of actions and the sum reward from those actions
+#     Predicts a new action set to get a higher reward
 
-Assorted TO-DOs:
+# - Is this going to produce good mario players with a NN level or is it going to memorize levels?
+# - Is memorizing the level fine if it's computationally quick?
 
-- Break script into agent/gene, mutation, genome scripts (might mean moving them to their own folder)
-- Add more mutation functions
-- Improve interactibility with parameters
-- Save metrics (genome rewards, agent rewards, overall rewards, etc.)
-    - try and use same format as the ppo_base.py metrics
-- Clean/refactor code, good amounts of un-used lines + duplicate metrics being tracked
-    - Part of this might involve splitting the script up a little
-"""
+# Assorted TO-DOs:
+
+# - Break script into agent/gene, mutation, genome scripts (might mean moving them to their own folder)
+# - Add more mutation functions
+# - Improve interactibility with parameters
+# - Save metrics (genome rewards, agent rewards, overall rewards, etc.)
+#     - try and use same format as the ppo_base.py metrics
+# - Clean/refactor code, good amounts of un-used lines + duplicate metrics being tracked
+#     - Part of this might involve splitting the script up a little
+
+
 class GeneticLearning(AlgorithmBase):
     """
     This might be the main class for running various genetic algorithms that I design
@@ -96,6 +97,7 @@ class GeneticLearning(AlgorithmBase):
         for episode, reward in self.EPISODE_REWARDS.items():
             if reward >= 350:
                 print(episode)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

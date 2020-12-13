@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from genetic_agents import BlankAgent
+from smw_learning.genetic_learning.genetic_agents import BlankAgent
 
 class Mutator(object):
     """

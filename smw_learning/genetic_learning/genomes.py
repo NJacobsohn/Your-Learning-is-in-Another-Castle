@@ -1,8 +1,8 @@
 import numpy as np
 from math import factorial
 from itertools import combinations
-from mutators import Mutator, OverlapMutator
-from genetic_agents import RandomAgent, ParallelAgent
+from smw_learning.genetic_learning.mutators import Mutator, OverlapMutator
+from smw_learning.genetic_learning.genetic_agents import RandomAgent, ParallelAgent
 
 class Genome(object):
     """

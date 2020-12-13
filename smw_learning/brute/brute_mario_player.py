@@ -1,5 +1,5 @@
 import retro
-from algorithm_object_base import AlgorithmBase
+from smw_learning.base import AlgorithmBase
 from retro.examples.brute import Brute, TimeLimit
 from baselines.common.retro_wrappers import StochasticFrameSkip
 
@@ -9,7 +9,6 @@ class BrutePlayer(AlgorithmBase):
     This is one of the algorithm classes that is callable from the command line.
     """
     def __init__(self, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
         self.max_episode_steps = 5000
         self.env = self.make_env()
@@ -50,5 +49,3 @@ class BrutePlayer(AlgorithmBase):
                 print("Timestep limit exceeded")
                 break
         self.env.close()
-
-        

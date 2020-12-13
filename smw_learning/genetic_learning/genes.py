@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class BaseGene(object):
     """
     This is just going to be a class to represent the actions/weights/etc. of an agent
@@ -41,6 +42,7 @@ class BaseGene(object):
     def __iter__(self):
         return iter(self.sequence)
 
+
 class RandomGene(BaseGene):
     """
     This is a class to represent the actions of a random agent
@@ -55,6 +57,7 @@ class RandomGene(BaseGene):
         Create a random gene structure. These are actions
         """
         self.sequence = np.random.randint(self.NUM_ACTIONS, size=(self.length,))
+
 
 class ParallelGene(BaseGene):
 
