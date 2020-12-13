@@ -1,8 +1,8 @@
 import argparse
-from ppo_base import PPOBase
-from brute_mario_player import BrutePlayer
-from random_mario_player import RandomPlayer
-from parallel_evolution import ParallelGeneticLearning
+from smw_learning.ppo.ppo_base import PPOBase
+from smw_learning.brute.brute_mario_player import BrutePlayer
+from smw_learning.random.random_mario_player import RandomPlayer
+from smw_learning.genetic_learning.parallel_evolution import ParallelGeneticLearning
 
 def create_parser():
     """
@@ -57,7 +57,6 @@ def choose_algorithm(args):
             Genetic
         """.format(algorithm))   
     return func(args)
-#project_name, game, state, scenario, observation_type, record, variables
 
 def genetic_alg(args):
     return ParallelGeneticLearning(args.project, args.game, args.state, args.scenario, args.observations, args.record, args.variables)

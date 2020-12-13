@@ -4,7 +4,7 @@ import numpy as np
 import keras.backend as K
 from keras.layers import Input
 from keras.models import load_model
-from action_discretizer import MarioDiscretizer
+from smw_learning.base import MarioDiscretizer
 
 def proximal_policy_optimization_loss(advantage, old_prediction):
     """
@@ -31,7 +31,9 @@ def play_level(project_name, level_name, episodes=1, weighted_random=False):
     env.load_state(level_name)
     env = MarioDiscretizer(env)
     model_path = "learning_movies/" + project_name + "/"
-    actor = load_model(model_path+"actor_model.hdf5", custom_objects={'loss':proximal_policy_optimization_loss(advantage=advantage, old_prediction=old_prediction)})
+    actor = load_model(model_path + "actor_model.hdf5", 
+                       custom_objects={'loss': proximal_policy_optimization_loss(advantage=advantage, 
+                                                                                 old_prediction=old_prediction)})
     for _ in range(episodes):
         done = False
         obs = env.reset()
