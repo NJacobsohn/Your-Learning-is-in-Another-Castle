@@ -119,6 +119,8 @@ Both network types were trained with relatively small parameters and architectur
 - Update code to use tensorflow 2.0 (and more recent versions of all libraries)
 - Improve command line usage so model/alg parameters can be updated and customized with the script call
 - Optimize the way the gifs are hosted in the repo/README because they add so much load time (sorry!)
+- Build out docker/headless script for training and saving episodes to a cloud bucket for use on an AWS/GCP/Azure instance
+- GPU Support!
 - Plot relative learning rates (by looking at rewards) of NN and CNN
 - Implement other optimization algorithms and/or models
 - View how model(s) performance changes from level to level
