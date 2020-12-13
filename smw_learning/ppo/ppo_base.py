@@ -2,9 +2,13 @@ import csv
 import retro
 import numpy as np
 from keras import backend as K
-from nn_mario_player import NNPlayer
-from cnn_mario_player import CNNPlayer
-from algorithm_object_base import AlgorithmBase
+from smw_learning.base import AlgorithmBase
+from smw_learning.ppo.nn_mario_player import NNPlayer
+from smw_learning.ppo.cnn_mario_player import CNNPlayer
+
+
+# TODO: Update init on this this to have all the self attributes as args w/ defaults
+#           - This way train_on_emulator.py can take in additional args via command line to tune this
 
 class PPOBase(AlgorithmBase):
     """
@@ -13,6 +17,9 @@ class PPOBase(AlgorithmBase):
     This uses an implementation of PPO that I built based off of various other implementations I've seen
     I built my own rather than using someone else's because I couldn't find anyone that not only used retrogym,
     but also had keras model functionality
+
+    Args:
+
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -23,7 +30,8 @@ class PPOBase(AlgorithmBase):
         self.reward_over_time = {}
         self.actor_critic_losses = [{}, {}]
         self.MAX_EPISODES = 200
-        self.EPOCHS = 2                 # 2 epochs seems the best. Actor doesn't benefit much from more, and critic sees the best performance increase on the first two.
+        self.EPOCHS = 2                 # 2 epochs seems the best. Actor doesn't benefit much from more
+                                        # Critic sees the best performance increase on the first two.
         self.GAMMA = 0.80               # Used for reward scaling
         self.BUFFER_SIZE = 512          # Number of actions to fit the model to
         self.BATCH_SIZE = 16
@@ -97,7 +105,7 @@ class PPOBase(AlgorithmBase):
         for j in range(len(self.reward) - 2, -1, -1):
             self.reward[j] += self.reward[j + 1] * self.GAMMA
 
-    def get_batch(self):
+    def get_batch(self, verbose=False):
         """
         Create batch of observations, actions, and rewards to train the Actor and Critic networks on
 
@@ -132,12 +140,15 @@ class PPOBase(AlgorithmBase):
                 self.reset_env()
         obs, action, pred, reward = np.array(batch[0]), np.array(batch[1]), np.array(batch[2]), np.reshape(np.array(batch[3]), (len(batch[3]), 1))
         pred = np.reshape(pred, (pred.shape[0], pred.shape[2]))
-        # These are here just to get some info to prep to refactor this stupid function
-        """print("Buffer size: ", self.BUFFER_SIZE)
-        print("obs: ", obs.shape)
-        print("action: ", action.shape)
-        print("pred: ", pred.shape)
-        print("reward: ", reward.shape)"""
+        
+        if verbose:
+            # This is here to get some info to prep for refactoring this stupid function
+            print("Buffer size: ", self.BUFFER_SIZE)
+            print("obs: ", obs.shape)
+            print("action: ", action.shape)
+            print("pred: ", pred.shape)
+            print("reward: ", reward.shape)
+
         return obs, action, pred, reward
     
     def _write_reward_history(self, verbose=1):

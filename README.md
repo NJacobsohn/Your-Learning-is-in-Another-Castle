@@ -115,7 +115,10 @@ Both network types were trained with relatively small parameters and architectur
 
 ## **What's Next?**
 
-- Train the CNN and NN with bigger parameters
+- Convert repo into easily pip-installable repository
+- Update code to use tensorflow 2.0 (and more recent versions of all libraries)
+- Improve command line usage so model/alg parameters can be updated and customized with the script call
+- Optimize the way the gifs are hosted in the repo/README because they add so much load time (sorry!)
 - Plot relative learning rates (by looking at rewards) of NN and CNN
 - Implement other optimization algorithms and/or models
 - View how model(s) performance changes from level to level
